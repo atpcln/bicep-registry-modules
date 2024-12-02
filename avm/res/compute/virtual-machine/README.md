@@ -476,14 +476,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     disablePasswordAuthentication: true
     enableAutomaticUpdates: true
     encryptionAtHost: false
-    extensionAadJoinConfig: {
-      enabled: true
-      tags: {
-        Environment: 'Non-Prod'
-        'hidden-title': 'This is visible in the resource name'
-        Role: 'DeploymentValidation'
-      }
-    }
     extensionAzureDiskEncryptionConfig: {
       enabled: true
       settings: {
@@ -545,6 +537,14 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     }
     extensionNetworkWatcherAgentConfig: {
+      enabled: true
+      tags: {
+        Environment: 'Non-Prod'
+        'hidden-title': 'This is visible in the resource name'
+        Role: 'DeploymentValidation'
+      }
+    }
+    extensionAadJoinConfig: {
       enabled: true
       tags: {
         Environment: 'Non-Prod'
@@ -761,16 +761,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     "encryptionAtHost": {
       "value": false
     },
-    "extensionAadJoinConfig": {
-      "value": {
-        "enabled": true,
-        "tags": {
-          "Environment": "Non-Prod",
-          "hidden-title": "This is visible in the resource name",
-          "Role": "DeploymentValidation"
-        }
-      }
-    },
     "extensionAzureDiskEncryptionConfig": {
       "value": {
         "enabled": true,
@@ -844,6 +834,16 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     },
     "extensionNetworkWatcherAgentConfig": {
+      "value": {
+        "enabled": true,
+        "tags": {
+          "Environment": "Non-Prod",
+          "hidden-title": "This is visible in the resource name",
+          "Role": "DeploymentValidation"
+        }
+      }
+    },
+    "extensionAadJoinConfig": {
       "value": {
         "enabled": true,
         "tags": {
@@ -1048,14 +1048,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     ]
     enableAutomaticUpdates: true
     encryptionAtHost: false
-    extensionAadJoinConfig: {
-      enabled: true
-      tags: {
-        Environment: 'Non-Prod'
-        'hidden-title': 'This is visible in the resource name'
-        Role: 'DeploymentValidation'
-      }
-    }
     extensionAntiMalwareConfig: {
       enabled: true
       settings: {
@@ -1139,6 +1131,14 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     }
     extensionNetworkWatcherAgentConfig: {
+      enabled: true
+      tags: {
+        Environment: 'Non-Prod'
+        'hidden-title': 'This is visible in the resource name'
+        Role: 'DeploymentValidation'
+      }
+    }
+    extensionAadJoinConfig: {
       enabled: true
       tags: {
         Environment: 'Non-Prod'
@@ -1350,16 +1350,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     "encryptionAtHost": {
       "value": false
     },
-    "extensionAadJoinConfig": {
-      "value": {
-        "enabled": true,
-        "tags": {
-          "Environment": "Non-Prod",
-          "hidden-title": "This is visible in the resource name",
-          "Role": "DeploymentValidation"
-        }
-      }
-    },
     "extensionAntiMalwareConfig": {
       "value": {
         "enabled": true,
@@ -1457,6 +1447,16 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     },
     "extensionNetworkWatcherAgentConfig": {
+      "value": {
+        "enabled": true,
+        "tags": {
+          "Environment": "Non-Prod",
+          "hidden-title": "This is visible in the resource name",
+          "Role": "DeploymentValidation"
+        }
+      }
+    },
+    "extensionAadJoinConfig": {
       "value": {
         "enabled": true,
         "tags": {
@@ -1875,20 +1875,20 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     vmSize: 'Standard_DS2_v2'
     // Non-required parameters
     adminPassword: '<adminPassword>'
-    extensionAadJoinConfig: {
-      enabled: true
-      tags: {
-        Environment: 'Non-Prod'
-        'hidden-title': 'This is visible in the resource name'
-        Role: 'DeploymentValidation'
-      }
-    }
     extensionHostPoolRegistration: {
       configurationFunction: 'Configuration.ps1\\AddSessionHost'
       enabled: true
       hostPoolName: '<hostPoolName>'
       modulesUrl: '<modulesUrl>'
       registrationInfoToken: '<registrationInfoToken>'
+      tags: {
+        Environment: 'Non-Prod'
+        'hidden-title': 'This is visible in the resource name'
+        Role: 'DeploymentValidation'
+      }
+    }
+    extensionAadJoinConfig: {
+      enabled: true
       tags: {
         Environment: 'Non-Prod'
         'hidden-title': 'This is visible in the resource name'
@@ -1965,16 +1965,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     "adminPassword": {
       "value": "<adminPassword>"
     },
-    "extensionAadJoinConfig": {
-      "value": {
-        "enabled": true,
-        "tags": {
-          "Environment": "Non-Prod",
-          "hidden-title": "This is visible in the resource name",
-          "Role": "DeploymentValidation"
-        }
-      }
-    },
     "extensionHostPoolRegistration": {
       "value": {
         "configurationFunction": "Configuration.ps1\\AddSessionHost",
@@ -1982,6 +1972,16 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
         "hostPoolName": "<hostPoolName>",
         "modulesUrl": "<modulesUrl>",
         "registrationInfoToken": "<registrationInfoToken>",
+        "tags": {
+          "Environment": "Non-Prod",
+          "hidden-title": "This is visible in the resource name",
+          "Role": "DeploymentValidation"
+        }
+      }
+    },
+    "extensionAadJoinConfig": {
+      "value": {
+        "enabled": true,
         "tags": {
           "Environment": "Non-Prod",
           "hidden-title": "This is visible in the resource name",
@@ -2138,14 +2138,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     ]
     enableAutomaticUpdates: true
     encryptionAtHost: false
-    extensionAadJoinConfig: {
-      enabled: true
-      tags: {
-        Environment: 'Non-Prod'
-        'hidden-title': 'This is visible in the resource name'
-        Role: 'DeploymentValidation'
-      }
-    }
     extensionAntiMalwareConfig: {
       enabled: true
       settings: {
@@ -2230,6 +2222,14 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     }
     extensionNetworkWatcherAgentConfig: {
+      enabled: true
+      tags: {
+        Environment: 'Non-Prod'
+        'hidden-title': 'This is visible in the resource name'
+        Role: 'DeploymentValidation'
+      }
+    }
+    extensionAadJoinConfig: {
       enabled: true
       tags: {
         Environment: 'Non-Prod'
@@ -2441,16 +2441,6 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
     "encryptionAtHost": {
       "value": false
     },
-    "extensionAadJoinConfig": {
-      "value": {
-        "enabled": true,
-        "tags": {
-          "Environment": "Non-Prod",
-          "hidden-title": "This is visible in the resource name",
-          "Role": "DeploymentValidation"
-        }
-      }
-    },
     "extensionAntiMalwareConfig": {
       "value": {
         "enabled": true,
@@ -2549,6 +2539,16 @@ module virtualMachine 'br/public:avm/res/compute/virtual-machine:<version>' = {
       }
     },
     "extensionNetworkWatcherAgentConfig": {
+      "value": {
+        "enabled": true,
+        "tags": {
+          "Environment": "Non-Prod",
+          "hidden-title": "This is visible in the resource name",
+          "Role": "DeploymentValidation"
+        }
+      }
+    },
+    "extensionAadJoinConfig": {
       "value": {
         "enabled": true,
         "tags": {
@@ -3563,6 +3563,7 @@ Specifies the priority for the virtual machine.
 - Allowed:
   ```Bicep
   [
+    ''
     'Low'
     'Regular'
     'Spot'

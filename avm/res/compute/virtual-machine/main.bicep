@@ -431,15 +431,11 @@ module vm_nic 'modules/nic-configuration.bicep' = [
       enableIPForwarding: contains(nicConfiguration, 'enableIPForwarding')
         ? (!empty(nicConfiguration.enableIPForwarding) ? nicConfiguration.enableIPForwarding : false)
         : false
-      enableAcceleratedNetworking: contains(nicConfiguration, 'enableAcceleratedNetworking')
-        ? nicConfiguration.enableAcceleratedNetworking
-        : true
+      enableAcceleratedNetworking: nicConfiguration.?enableAcceleratedNetworking ?? true
       dnsServers: contains(nicConfiguration, 'dnsServers')
         ? (!empty(nicConfiguration.dnsServers) ? nicConfiguration.dnsServers : [])
         : []
-      networkSecurityGroupResourceId: contains(nicConfiguration, 'networkSecurityGroupResourceId')
-        ? nicConfiguration.networkSecurityGroupResourceId
-        : ''
+      networkSecurityGroupResourceId: nicConfiguration.?networkSecurityGroupResourceId ?? ''
       ipConfigurations: nicConfiguration.ipConfigurations
       lock: nicConfiguration.?lock ?? lock
       tags: nicConfiguration.?tags ?? tags
@@ -475,10 +471,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
       imageReference: imageReference
       osDisk: {
         name: '${name}-disk-os-01'
-        createOption: contains(osDisk, 'createOption') ? osDisk.createOption : 'FromImage'
-        deleteOption: contains(osDisk, 'deleteOption') ? osDisk.deleteOption : 'Delete'
+        createOption: osDisk.?createOption ?? 'FromImage'
+        deleteOption: osDisk.?deleteOption ?? 'Delete'
         diskSizeGB: osDisk.diskSizeGB
-        caching: contains(osDisk, 'caching') ? osDisk.caching : 'ReadOnly'
+        caching: osDisk.?caching ?? 'ReadOnly'
         managedDisk: {
           storageAccountType: osDisk.managedDisk.storageAccountType
           diskEncryptionSet: contains(osDisk.managedDisk, 'diskEncryptionSet')
@@ -493,9 +489,9 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
           lun: index
           name: '${name}-disk-data-${padLeft((index + 1), 2, '0')}'
           diskSizeGB: dataDisk.diskSizeGB
-          createOption: contains(dataDisk, 'createOption') ? dataDisk.createOption : 'Empty'
-          deleteOption: contains(dataDisk, 'deleteOption') ? dataDisk.deleteOption : 'Delete'
-          caching: contains(dataDisk, 'caching') ? dataDisk.caching : 'ReadOnly'
+          createOption: dataDisk.?createOption ?? 'Empty'
+          deleteOption: dataDisk.?deleteOption ?? 'Delete'
+          caching: dataDisk.?caching ?? 'ReadOnly'
           managedDisk: {
             storageAccountType: dataDisk.managedDisk.storageAccountType
             diskEncryptionSet: contains(dataDisk.managedDisk, 'diskEncryptionSet')
@@ -524,7 +520,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-11-01' = {
       networkInterfaces: [
         for (nicConfiguration, index) in nicConfigurations: {
           properties: {
-            deleteOption: contains(nicConfiguration, 'deleteOption') ? nicConfiguration.deleteOption : 'Delete'
+            deleteOption: nicConfiguration.?deleteOption ?? 'Delete'
             primary: index == 0 ? true : false
           }
           #disable-next-line use-resource-id-functions // It's a reference from inside a loop which makes resolving it using a resource reference particulary difficult.
@@ -585,16 +581,10 @@ module vm_aadJoinExtension 'extension/main.bicep' = if (extensionAadJoinConfig.e
     location: location
     publisher: 'Microsoft.Azure.ActiveDirectory'
     type: osType == 'Windows' ? 'AADLoginForWindows' : 'AADSSHLoginforLinux'
-    typeHandlerVersion: contains(extensionAadJoinConfig, 'typeHandlerVersion')
-      ? extensionAadJoinConfig.typeHandlerVersion
-      : (osType == 'Windows' ? '2.0' : '1.0')
-    autoUpgradeMinorVersion: contains(extensionAadJoinConfig, 'autoUpgradeMinorVersion')
-      ? extensionAadJoinConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionAadJoinConfig, 'enableAutomaticUpgrade')
-      ? extensionAadJoinConfig.enableAutomaticUpgrade
-      : false
-    settings: contains(extensionAadJoinConfig, 'settings') ? extensionAadJoinConfig.settings : {}
+    typeHandlerVersion: extensionAadJoinConfig.?typeHandlerVersion ?? (osType == 'Windows' ? '2.0' : '1.0')
+    autoUpgradeMinorVersion: extensionAadJoinConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionAadJoinConfig.?enableAutomaticUpgrade ?? false
+    settings: extensionAadJoinConfig.?settings ?? {}
     tags: extensionAadJoinConfig.?tags ?? tags
   }
 }
@@ -607,15 +597,9 @@ module vm_domainJoinExtension 'extension/main.bicep' = if (extensionDomainJoinCo
     location: location
     publisher: 'Microsoft.Compute'
     type: 'JsonADDomainExtension'
-    typeHandlerVersion: contains(extensionDomainJoinConfig, 'typeHandlerVersion')
-      ? extensionDomainJoinConfig.typeHandlerVersion
-      : '1.3'
-    autoUpgradeMinorVersion: contains(extensionDomainJoinConfig, 'autoUpgradeMinorVersion')
-      ? extensionDomainJoinConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionDomainJoinConfig, 'enableAutomaticUpgrade')
-      ? extensionDomainJoinConfig.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionDomainJoinConfig.?typeHandlerVersion ?? '1.3'
+    autoUpgradeMinorVersion: extensionDomainJoinConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionDomainJoinConfig.?enableAutomaticUpgrade ?? false
     settings: extensionDomainJoinConfig.settings
     tags: extensionDomainJoinConfig.?tags ?? tags
     protectedSettings: {
@@ -635,15 +619,9 @@ module vm_microsoftAntiMalwareExtension 'extension/main.bicep' = if (extensionAn
     location: location
     publisher: 'Microsoft.Azure.Security'
     type: 'IaaSAntimalware'
-    typeHandlerVersion: contains(extensionAntiMalwareConfig, 'typeHandlerVersion')
-      ? extensionAntiMalwareConfig.typeHandlerVersion
-      : '1.3'
-    autoUpgradeMinorVersion: contains(extensionAntiMalwareConfig, 'autoUpgradeMinorVersion')
-      ? extensionAntiMalwareConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionAntiMalwareConfig, 'enableAutomaticUpgrade')
-      ? extensionAntiMalwareConfig.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionAntiMalwareConfig.?typeHandlerVersion ?? '1.3'
+    autoUpgradeMinorVersion: extensionAntiMalwareConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionAntiMalwareConfig.?enableAutomaticUpgrade ?? false
     settings: extensionAntiMalwareConfig.settings
     tags: extensionAntiMalwareConfig.?tags ?? tags
   }
@@ -712,15 +690,9 @@ module vm_dependencyAgentExtension 'extension/main.bicep' = if (extensionDepende
     location: location
     publisher: 'Microsoft.Azure.Monitoring.DependencyAgent'
     type: osType == 'Windows' ? 'DependencyAgentWindows' : 'DependencyAgentLinux'
-    typeHandlerVersion: contains(extensionDependencyAgentConfig, 'typeHandlerVersion')
-      ? extensionDependencyAgentConfig.typeHandlerVersion
-      : '9.5'
-    autoUpgradeMinorVersion: contains(extensionDependencyAgentConfig, 'autoUpgradeMinorVersion')
-      ? extensionDependencyAgentConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionDependencyAgentConfig, 'enableAutomaticUpgrade')
-      ? extensionDependencyAgentConfig.enableAutomaticUpgrade
-      : true
+    typeHandlerVersion: extensionDependencyAgentConfig.?typeHandlerVersion ?? '9.5'
+    autoUpgradeMinorVersion: extensionDependencyAgentConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionDependencyAgentConfig.?enableAutomaticUpgrade ?? true
     tags: extensionDependencyAgentConfig.?tags ?? tags
   }
   dependsOn: [
@@ -736,15 +708,9 @@ module vm_networkWatcherAgentExtension 'extension/main.bicep' = if (extensionNet
     location: location
     publisher: 'Microsoft.Azure.NetworkWatcher'
     type: osType == 'Windows' ? 'NetworkWatcherAgentWindows' : 'NetworkWatcherAgentLinux'
-    typeHandlerVersion: contains(extensionNetworkWatcherAgentConfig, 'typeHandlerVersion')
-      ? extensionNetworkWatcherAgentConfig.typeHandlerVersion
-      : '1.4'
-    autoUpgradeMinorVersion: contains(extensionNetworkWatcherAgentConfig, 'autoUpgradeMinorVersion')
-      ? extensionNetworkWatcherAgentConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionNetworkWatcherAgentConfig, 'enableAutomaticUpgrade')
-      ? extensionNetworkWatcherAgentConfig.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionNetworkWatcherAgentConfig.?typeHandlerVersion ?? '1.4'
+    autoUpgradeMinorVersion: extensionNetworkWatcherAgentConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionNetworkWatcherAgentConfig.?enableAutomaticUpgrade ?? false
     tags: extensionNetworkWatcherAgentConfig.?tags ?? tags
   }
   dependsOn: [
@@ -760,18 +726,12 @@ module vm_desiredStateConfigurationExtension 'extension/main.bicep' = if (extens
     location: location
     publisher: 'Microsoft.Powershell'
     type: 'DSC'
-    typeHandlerVersion: contains(extensionDSCConfig, 'typeHandlerVersion')
-      ? extensionDSCConfig.typeHandlerVersion
-      : '2.77'
-    autoUpgradeMinorVersion: contains(extensionDSCConfig, 'autoUpgradeMinorVersion')
-      ? extensionDSCConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionDSCConfig, 'enableAutomaticUpgrade')
-      ? extensionDSCConfig.enableAutomaticUpgrade
-      : false
-    settings: contains(extensionDSCConfig, 'settings') ? extensionDSCConfig.settings : {}
+    typeHandlerVersion: extensionDSCConfig.?typeHandlerVersion ?? '2.77'
+    autoUpgradeMinorVersion: extensionDSCConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionDSCConfig.?enableAutomaticUpgrade ?? false
+    settings: extensionDSCConfig.?settings ?? {}
     tags: extensionDSCConfig.?tags ?? tags
-    protectedSettings: contains(extensionDSCConfig, 'protectedSettings') ? extensionDSCConfig.protectedSettings : {}
+    protectedSettings: extensionDSCConfig.?protectedSettings ?? {}
   }
   dependsOn: [
     vm_networkWatcherAgentExtension
@@ -786,15 +746,9 @@ module vm_customScriptExtension 'extension/main.bicep' = if (extensionCustomScri
     location: location
     publisher: osType == 'Windows' ? 'Microsoft.Compute' : 'Microsoft.Azure.Extensions'
     type: osType == 'Windows' ? 'CustomScriptExtension' : 'CustomScript'
-    typeHandlerVersion: contains(extensionCustomScriptConfig, 'typeHandlerVersion')
-      ? extensionCustomScriptConfig.typeHandlerVersion
-      : (osType == 'Windows' ? '1.10' : '2.1')
-    autoUpgradeMinorVersion: contains(extensionCustomScriptConfig, 'autoUpgradeMinorVersion')
-      ? extensionCustomScriptConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionCustomScriptConfig, 'enableAutomaticUpgrade')
-      ? extensionCustomScriptConfig.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionCustomScriptConfig.?typeHandlerVersion ?? (osType == 'Windows' ? '1.10' : '2.1')
+    autoUpgradeMinorVersion: extensionCustomScriptConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionCustomScriptConfig.?enableAutomaticUpgrade ?? false
     settings: {
       fileUris: [
         for fileData in extensionCustomScriptConfig.fileData: contains(fileData, 'storageAccountId')
@@ -818,18 +772,10 @@ module vm_azureDiskEncryptionExtension 'extension/main.bicep' = if (extensionAzu
     location: location
     publisher: 'Microsoft.Azure.Security'
     type: osType == 'Windows' ? 'AzureDiskEncryption' : 'AzureDiskEncryptionForLinux'
-    typeHandlerVersion: contains(extensionAzureDiskEncryptionConfig, 'typeHandlerVersion')
-      ? extensionAzureDiskEncryptionConfig.typeHandlerVersion
-      : (osType == 'Windows' ? '2.2' : '1.1')
-    autoUpgradeMinorVersion: contains(extensionAzureDiskEncryptionConfig, 'autoUpgradeMinorVersion')
-      ? extensionAzureDiskEncryptionConfig.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionAzureDiskEncryptionConfig, 'enableAutomaticUpgrade')
-      ? extensionAzureDiskEncryptionConfig.enableAutomaticUpgrade
-      : false
-    forceUpdateTag: contains(extensionAzureDiskEncryptionConfig, 'forceUpdateTag')
-      ? extensionAzureDiskEncryptionConfig.forceUpdateTag
-      : '1.0'
+    typeHandlerVersion: extensionAzureDiskEncryptionConfig.?typeHandlerVersion ?? (osType == 'Windows' ? '2.2' : '1.1')
+    autoUpgradeMinorVersion: extensionAzureDiskEncryptionConfig.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionAzureDiskEncryptionConfig.?enableAutomaticUpgrade ?? false
+    forceUpdateTag: extensionAzureDiskEncryptionConfig.?forceUpdateTag ?? '1.0'
     settings: extensionAzureDiskEncryptionConfig.settings
     tags: extensionAzureDiskEncryptionConfig.?tags ?? tags
   }
@@ -846,15 +792,9 @@ module vm_nvidiaGpuDriverWindowsExtension 'extension/main.bicep' = if (extension
     location: location
     publisher: 'Microsoft.HpcCompute'
     type: 'NvidiaGpuDriverWindows'
-    typeHandlerVersion: contains(extensionNvidiaGpuDriverWindows, 'typeHandlerVersion')
-      ? extensionNvidiaGpuDriverWindows.typeHandlerVersion
-      : '1.4'
-    autoUpgradeMinorVersion: contains(extensionNvidiaGpuDriverWindows, 'autoUpgradeMinorVersion')
-      ? extensionNvidiaGpuDriverWindows.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionNvidiaGpuDriverWindows, 'enableAutomaticUpgrade')
-      ? extensionNvidiaGpuDriverWindows.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionNvidiaGpuDriverWindows.?typeHandlerVersion ?? '1.4'
+    autoUpgradeMinorVersion: extensionNvidiaGpuDriverWindows.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionNvidiaGpuDriverWindows.?enableAutomaticUpgrade ?? false
     tags: extensionNvidiaGpuDriverWindows.?tags ?? tags
   }
   dependsOn: [
@@ -870,15 +810,9 @@ module vm_hostPoolRegistrationExtension 'extension/main.bicep' = if (extensionHo
     location: location
     publisher: 'Microsoft.PowerShell'
     type: 'DSC'
-    typeHandlerVersion: contains(extensionHostPoolRegistration, 'typeHandlerVersion')
-      ? extensionHostPoolRegistration.typeHandlerVersion
-      : '2.77'
-    autoUpgradeMinorVersion: contains(extensionHostPoolRegistration, 'autoUpgradeMinorVersion')
-      ? extensionHostPoolRegistration.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionHostPoolRegistration, 'enableAutomaticUpgrade')
-      ? extensionHostPoolRegistration.enableAutomaticUpgrade
-      : false
+    typeHandlerVersion: extensionHostPoolRegistration.?typeHandlerVersion ?? '2.77'
+    autoUpgradeMinorVersion: extensionHostPoolRegistration.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionHostPoolRegistration.?enableAutomaticUpgrade ?? false
     settings: {
       modulesUrl: extensionHostPoolRegistration.modulesUrl
       configurationFunction: extensionHostPoolRegistration.configurationFunction
@@ -903,21 +837,11 @@ module vm_azureGuestConfigurationExtension 'extension/main.bicep' = if (extensio
     location: location
     publisher: 'Microsoft.GuestConfiguration'
     type: osType == 'Windows' ? 'ConfigurationforWindows' : 'ConfigurationForLinux'
-    typeHandlerVersion: contains(extensionGuestConfigurationExtension, 'typeHandlerVersion')
-      ? extensionGuestConfigurationExtension.typeHandlerVersion
-      : (osType == 'Windows' ? '1.0' : '1.0')
-    autoUpgradeMinorVersion: contains(extensionGuestConfigurationExtension, 'autoUpgradeMinorVersion')
-      ? extensionGuestConfigurationExtension.autoUpgradeMinorVersion
-      : true
-    enableAutomaticUpgrade: contains(extensionGuestConfigurationExtension, 'enableAutomaticUpgrade')
-      ? extensionGuestConfigurationExtension.enableAutomaticUpgrade
-      : true
-    forceUpdateTag: contains(extensionGuestConfigurationExtension, 'forceUpdateTag')
-      ? extensionGuestConfigurationExtension.forceUpdateTag
-      : '1.0'
-    settings: contains(extensionGuestConfigurationExtension, 'settings')
-      ? extensionGuestConfigurationExtension.settings
-      : {}
+    typeHandlerVersion: extensionGuestConfigurationExtension.?typeHandlerVersion ?? (osType == 'Windows' ? '1.0' : '1.0')
+    autoUpgradeMinorVersion: extensionGuestConfigurationExtension.?autoUpgradeMinorVersion ?? true
+    enableAutomaticUpgrade: extensionGuestConfigurationExtension.?enableAutomaticUpgrade ?? true
+    forceUpdateTag: extensionGuestConfigurationExtension.?forceUpdateTag ?? '1.0'
+    settings: extensionGuestConfigurationExtension.?settings ?? {}
     protectedSettings: extensionGuestConfigurationExtensionProtectedSettings
     tags: extensionGuestConfigurationExtension.?tags ?? tags
   }
@@ -970,11 +894,12 @@ resource vm_roleAssignments 'Microsoft.Authorization/roleAssignments@2022-04-01'
   for (roleAssignment, index) in (roleAssignments ?? []): {
     name: guid(vm.id, roleAssignment.principalId, roleAssignment.roleDefinitionIdOrName)
     properties: {
-      roleDefinitionId: contains(builtInRoleNames, roleAssignment.roleDefinitionIdOrName)
-        ? builtInRoleNames[roleAssignment.roleDefinitionIdOrName]
-        : contains(roleAssignment.roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/')
-            ? roleAssignment.roleDefinitionIdOrName
-            : subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleAssignment.roleDefinitionIdOrName)
+      roleDefinitionId: builtInRoleNames[?roleAssignment.roleDefinitionIdOrName] ?? (contains(
+          roleAssignment.roleDefinitionIdOrName,
+          '/providers/Microsoft.Authorization/roleDefinitions/'
+        )
+        ? roleAssignment.roleDefinitionIdOrName
+        : subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleAssignment.roleDefinitionIdOrName))
       principalId: roleAssignment.principalId
       description: roleAssignment.?description
       principalType: roleAssignment.?principalType
