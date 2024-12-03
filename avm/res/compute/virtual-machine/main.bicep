@@ -630,7 +630,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
           id: virtualMachineScaleSetResourceId
         }
       : null
-    priority: priority
+    priority: !empty(priority) ? priority: null
     evictionPolicy: enableEvictionPolicy ? 'Deallocate' : null
     #disable-next-line BCP036
     billingProfile: !empty(priority) && !empty(maxPriceForLowPriorityVm)

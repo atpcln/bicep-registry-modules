@@ -5706,6 +5706,7 @@ Specifies the priority for the virtual machine.
 - Allowed:
   ```Bicep
   [
+    ''
     'Low'
     'Regular'
     'Spot'
