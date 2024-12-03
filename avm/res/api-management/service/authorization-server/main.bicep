@@ -5,6 +5,10 @@ metadata owner = 'Azure/module-maintainers'
 @description('Required. Identifier of the authorization server.')
 param name string
 
+@description('Required. API Management Service Authorization Servers name. Must be 1 to 50 characters long.')
+@maxLength(50)
+param displayName string
+
 @description('Conditional. The name of the parent API Management service. Required if the template is used in a standalone deployment.')
 param apiManagementServiceName string
 
@@ -67,11 +71,11 @@ var defaultAuthorizationMethods = [
 ]
 var setAuthorizationMethods = union(authorizationMethods, defaultAuthorizationMethods)
 
-resource service 'Microsoft.ApiManagement/service@2021-08-01' existing = {
+resource service 'Microsoft.ApiManagement/service@2023-05-01-preview' existing = {
   name: apiManagementServiceName
 }
 
-resource authorizationServer 'Microsoft.ApiManagement/service/authorizationServers@2021-08-01' = {
+resource authorizationServer 'Microsoft.ApiManagement/service/authorizationServers@2022-08-01' = {
   name: name
   parent: service
   properties: {
@@ -85,7 +89,7 @@ resource authorizationServer 'Microsoft.ApiManagement/service/authorizationServe
     bearerTokenSendingMethods: bearerTokenSendingMethods
     resourceOwnerUsername: resourceOwnerUsername
     resourceOwnerPassword: resourceOwnerPassword
-    displayName: name
+    displayName: displayName
     clientRegistrationEndpoint: clientRegistrationEndpoint
     authorizationEndpoint: authorizationEndpoint
     grantTypes: grantTypes

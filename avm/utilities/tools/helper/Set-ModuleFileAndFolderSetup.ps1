@@ -19,7 +19,7 @@ Set-ModuleFileAndFolderSetup -FullModuleFolderPath '<repoPath>\avm\res\storage\s
 Results into:
 - Added file [<repoPath>\avm\res\storage\storage-account\main.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\version.json]
-- Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\default\main.test.bicep]
+- Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\defaults\main.test.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\waf-aligned\main.test.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\blob-service\main.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\blob-service\container\main.bicep]
@@ -30,7 +30,7 @@ Set-ModuleFileAndFolderSetup -FullModuleFolderPath '<repoPath>\avm\res\storage\s
 Results into:
 - Added file [<repoPath>\avm\res\storage\storage-account\main.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\version.json]
-- Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\default\main.test.bicep]
+- Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\defaults\main.test.bicep]
 - Added file [<repoPath>\avm\res\storage\storage-account\tests\e2e\waf-aligned\main.test.bicep]
 
 #>
@@ -46,15 +46,18 @@ function Set-ModuleFileAndFolderSetup {
     )
 
     if ([String]::IsNullOrEmpty($CurrentLevelFolderPath)) {
-        # First invocation. Handling provider namespace
-        $resourceTypeIdentifier = ($FullModuleFolderPath -split '[\/|\\]{1}avm[\/|\\]{1}(res|ptn)[\/|\\]{1}')[2] # avm/res/<provider>/<resourceType>
-        $providerNamespace, $resourceType, $childResourceType = $resourceTypeIdentifier -split '[\/|\\]', 3
-        $avmModuleRoot = ($FullModuleFolderPath -split $providerNamespace)[0]
-        $currentLevelFolderPath = Join-Path $avmModuleRoot $providerNamespace $resourceType
+        # Extract path elements
+        $repoRoot, $moduleType, $resourceTypeIdentifier = $FullModuleFolderPath -split '[\/|\\]avm[\/|\\](res|ptn|utl)[\/|\\]' # .*/bicep-registry-modules, res|ptn|utl, <provider>/<resourceType>
+
+        # Split resource type identifier into components
+        $providerNamespace, $resourceType, $childResourceType = $resourceTypeIdentifier -split '[\/|\\]', 3 # <provider>, <resourceType>, <childResourceType>
+
+        # Join the required path to get up to the resource type folder
+        $CurrentLevelFolderPath = Join-Path $repoRoot 'avm' $moduleType $providerNamespace $resourceType
     }
 
     # Collect data
-    $resourceTypeIdentifier = ($CurrentLevelFolderPath -split '[\/|\\]{1}avm[\/|\\]{1}(res|ptn)[\/|\\]{1}')[2] # avm/res/<provider>/<resourceType>
+    $resourceTypeIdentifier = ($CurrentLevelFolderPath -split '[\/|\\]avm[\/|\\](res|ptn|utl)[\/|\\]')[2] # avm/res/<provider>/<resourceType>
     $isTopLevel = ($resourceTypeIdentifier -split '[\/|\\]').Count -eq 2
 
     # Mandatory files
@@ -102,13 +105,18 @@ function Set-ModuleFileAndFolderSetup {
             Write-Verbose "Added file [$versionFilePath]" -Verbose
         }
 
-        # Default test file
+        # Defaults test file
         # -----------------
         $testCasesPath = Join-Path $CurrentLevelFolderPath 'tests' 'e2e'
+
+        if (-not (Test-Path $testCasesPath)) {
+            $null = New-Item -Path $testCasesPath -ItemType 'Directory' -Force
+        }
+
         $currentTestFolders = Get-ChildItem -Path $testCasesPath -Directory | ForEach-Object { $_.Name }
 
         if (($currentTestFolders -match '.*defaults').count -eq 0) {
-            $defaultTestFilePath = Join-Path $testCasesPath 'default' 'main.test.bicep'
+            $defaultTestFilePath = Join-Path $testCasesPath 'defaults' 'main.test.bicep'
             if ($PSCmdlet.ShouldProcess("file [$defaultTestFilePath]", 'Add')) {
                 $null = New-Item -Path $defaultTestFilePath -ItemType 'File' -Force
             }

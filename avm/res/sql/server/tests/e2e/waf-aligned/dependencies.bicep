@@ -26,15 +26,12 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-04-01' = {
         addressPrefix
       ]
     }
-    subnets: map(
-      range(0, 2),
-      i => {
-        name: 'subnet-${i}'
-        properties: {
-          addressPrefix: cidrSubnet(addressPrefix, 24, i)
-        }
+    subnets: map(range(0, 2), i => {
+      name: 'subnet-${i}'
+      properties: {
+        addressPrefix: cidrSubnet(addressPrefix, 24, i)
       }
-    )
+    })
   }
 }
 
@@ -63,7 +60,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
       name: 'standard'
     }
     tenantId: tenant().tenantId
-    enablePurgeProtection: null
+    enablePurgeProtection: true // Required for encryption to work
     enabledForTemplateDeployment: true
     enabledForDiskEncryption: true
     enabledForDeployment: true

@@ -64,8 +64,9 @@ param computeType string
 @sys.description('Optional. The properties of the compute. Will be ignored in case "resourceId" is set.')
 param properties object?
 
+import { managedIdentityAllType } from 'br/public:avm/utl/types/avm-common-types:0.4.0'
 @sys.description('Optional. The managed identity definition for this resource.')
-param managedIdentities managedIdentitiesType
+param managedIdentities managedIdentityAllType?
 
 // ================//
 // Variables       //
@@ -98,35 +99,34 @@ resource machineLearningWorkspace 'Microsoft.MachineLearningServices/workspaces@
 // Deployments  //
 // ============ //
 
-resource compute 'Microsoft.MachineLearningServices/workspaces/computes@2022-10-01' =
-  if (deployCompute == true) {
-    name: name
-    location: location
-    tags: empty(resourceId) ? tags : any(null)
-    sku: empty(resourceId)
+resource compute 'Microsoft.MachineLearningServices/workspaces/computes@2022-10-01' = if (deployCompute == true) {
+  name: name
+  location: location
+  tags: empty(resourceId) ? tags : any(null)
+  sku: empty(resourceId)
+    ? {
+        name: sku
+        tier: sku
+      }
+    : any(null)
+  parent: machineLearningWorkspace
+  identity: empty(resourceId) ? identity : any(null)
+  properties: union(
+    {
+      description: description
+      disableLocalAuth: disableLocalAuth
+      computeType: computeType
+    },
+    (!empty(resourceId)
       ? {
-          name: sku
-          tier: sku
+          resourceId: resourceId
         }
-      : any(null)
-    parent: machineLearningWorkspace
-    identity: empty(resourceId) ? identity : any(null)
-    properties: union(
-      {
-        description: description
-        disableLocalAuth: disableLocalAuth
-        computeType: computeType
-      },
-      (!empty(resourceId)
-        ? {
-            resourceId: resourceId
-          }
-        : {
-            computeLocation: computeLocation
-            properties: properties
-          })
-    )
-  }
+      : {
+          computeLocation: computeLocation
+          properties: properties
+        })
+  )
+}
 
 // =========== //
 // Outputs     //
@@ -146,15 +146,3 @@ output systemAssignedMIPrincipalId string = compute.?identity.?principalId ?? ''
 
 @sys.description('The location the resource was deployed into.')
 output location string = compute.location
-
-// =============== //
-//   Definitions   //
-// =============== //
-
-type managedIdentitiesType = {
-  @sys.description('Optional. Enables system assigned managed identity on the resource.')
-  systemAssigned: bool?
-
-  @sys.description('Optional. The resource ID(s) to assign to the resource.')
-  userAssignedResourceIds: string[]?
-}?

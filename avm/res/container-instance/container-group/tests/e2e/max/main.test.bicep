@@ -61,7 +61,16 @@ module testDeployment '../../../main.bicep' = [
           name: '${namePrefix}-az-aci-x-001'
           properties: {
             command: []
-            environmentVariables: []
+            environmentVariables: [
+              {
+                name: 'CLIENT_ID'
+                value: 'TestClientId'
+              }
+              {
+                name: 'CLIENT_SECRET'
+                secureValue: 'TestSecret'
+              }
+            ]
             image: 'mcr.microsoft.com/azuredocs/aci-helloworld'
             ports: [
               {
@@ -76,7 +85,11 @@ module testDeployment '../../../main.bicep' = [
             resources: {
               requests: {
                 cpu: 2
-                memoryInGB: 2
+                memoryInGB: '2'
+              }
+              limits: {
+                cpu: 4
+                memoryInGB: '4'
               }
             }
           }
@@ -96,7 +109,7 @@ module testDeployment '../../../main.bicep' = [
             resources: {
               requests: {
                 cpu: 2
-                memoryInGB: 2
+                memoryInGB: '2'
               }
             }
           }

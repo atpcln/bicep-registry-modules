@@ -8,7 +8,6 @@ This template deploys an dns forwarding ruleset.
 - [Usage examples](#Usage-examples)
 - [Parameters](#Parameters)
 - [Outputs](#Outputs)
-- [Cross-referenced modules](#Cross-referenced-modules)
 - [Data Collection](#Data-Collection)
 
 ## Resource Types
@@ -62,7 +61,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -84,6 +83,25 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
     }
   }
 }
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/dns-forwarding-ruleset:<version>'
+
+// Required parameters
+param dnsForwardingRulesetOutboundEndpointResourceIds = [
+  '<dnsResolverOutboundEndpointsResourceId>'
+]
+param name = 'ndfrsmin001'
+// Non-required parameters
+param location = '<location>'
 ```
 
 </details>
@@ -116,7 +134,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
         targetDnsServers: [
           {
             ipAddress: '192.168.0.1'
-            port: '53'
+            port: 53
           }
         ]
       }
@@ -128,11 +146,13 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
     }
     roleAssignments: [
       {
+        name: '38837eb6-838b-4c77-8d7d-baa102195d9f'
         principalId: '<principalId>'
         principalType: 'ServicePrincipal'
         roleDefinitionIdOrName: 'Owner'
       }
       {
+        name: '<name>'
         principalId: '<principalId>'
         principalType: 'ServicePrincipal'
         roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
@@ -148,8 +168,11 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
       'hidden-title': 'This is visible in the resource name'
       Role: 'DeploymentValidation'
     }
-    vNetLinks: [
-      '<virtualNetworkResourceId>'
+    virtualNetworkLinks: [
+      {
+        name: 'mytestvnetlink1'
+        virtualNetworkResourceId: '<virtualNetworkResourceId>'
+      }
     ]
   }
 }
@@ -160,7 +183,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -186,7 +209,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
           "targetDnsServers": [
             {
               "ipAddress": "192.168.0.1",
-              "port": "53"
+              "port": 53
             }
           ]
         }
@@ -204,11 +227,13 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
     "roleAssignments": {
       "value": [
         {
+          "name": "38837eb6-838b-4c77-8d7d-baa102195d9f",
           "principalId": "<principalId>",
           "principalType": "ServicePrincipal",
           "roleDefinitionIdOrName": "Owner"
         },
         {
+          "name": "<name>",
           "principalId": "<principalId>",
           "principalType": "ServicePrincipal",
           "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -227,13 +252,82 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
         "Role": "DeploymentValidation"
       }
     },
-    "vNetLinks": {
+    "virtualNetworkLinks": {
       "value": [
-        "<virtualNetworkResourceId>"
+        {
+          "name": "mytestvnetlink1",
+          "virtualNetworkResourceId": "<virtualNetworkResourceId>"
+        }
       ]
     }
   }
 }
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/dns-forwarding-ruleset:<version>'
+
+// Required parameters
+param dnsForwardingRulesetOutboundEndpointResourceIds = [
+  '<dnsResolverOutboundEndpointsId>'
+]
+param name = 'ndfrsmax001'
+// Non-required parameters
+param forwardingRules = [
+  {
+    domainName: 'contoso.'
+    forwardingRuleState: 'Enabled'
+    name: 'rule1'
+    targetDnsServers: [
+      {
+        ipAddress: '192.168.0.1'
+        port: 53
+      }
+    ]
+  }
+]
+param location = '<location>'
+param lock = {
+  kind: 'CanNotDelete'
+  name: 'myCustomLockName'
+}
+param roleAssignments = [
+  {
+    name: '38837eb6-838b-4c77-8d7d-baa102195d9f'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'Owner'
+  }
+  {
+    name: '<name>'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+  }
+  {
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+  }
+]
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+param virtualNetworkLinks = [
+  {
+    name: 'mytestvnetlink1'
+    virtualNetworkResourceId: '<virtualNetworkResourceId>'
+  }
+]
 ```
 
 </details>
@@ -277,7 +371,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -317,6 +411,33 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
 </details>
 <p>
 
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/dns-forwarding-ruleset:<version>'
+
+// Required parameters
+param dnsForwardingRulesetOutboundEndpointResourceIds = [
+  '<dnsResolverOutboundEndpointsId>'
+]
+param name = 'ndfrswaf001'
+// Non-required parameters
+param location = '<location>'
+param lock = {
+  kind: 'CanNotDelete'
+  name: 'myCustomLockName'
+}
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+```
+
+</details>
+<p>
 
 ## Parameters
 
@@ -337,7 +458,7 @@ module dnsForwardingRuleset 'br/public:avm/res/network/dns-forwarding-ruleset:<v
 | [`lock`](#parameter-lock) | object | The lock settings of the service. |
 | [`roleAssignments`](#parameter-roleassignments) | array | Array of role assignments to create. |
 | [`tags`](#parameter-tags) | object | Tags of the resource. |
-| [`vNetLinks`](#parameter-vnetlinks) | array | Array of virtual network links. |
+| [`virtualNetworkLinks`](#parameter-virtualnetworklinks) | array | Array of virtual network links. |
 
 ### Parameter: `dnsForwardingRulesetOutboundEndpointResourceIds`
 
@@ -409,7 +530,7 @@ The target DNS servers to forward to.
 | Parameter | Type | Description |
 | :-- | :-- | :-- |
 | [`ipAddress`](#parameter-forwardingrulestargetdnsserversipaddress) | string | The IP address of the target DNS server. |
-| [`port`](#parameter-forwardingrulestargetdnsserversport) | string | The port of the target DNS server. |
+| [`port`](#parameter-forwardingrulestargetdnsserversport) | int | The port of the target DNS server. |
 
 ### Parameter: `forwardingRules.targetDnsServers.ipAddress`
 
@@ -423,7 +544,7 @@ The IP address of the target DNS server.
 The port of the target DNS server.
 
 - Required: Yes
-- Type: string
+- Type: int
 
 ### Parameter: `forwardingRules.forwardingRuleState`
 
@@ -496,6 +617,15 @@ Array of role assignments to create.
 
 - Required: No
 - Type: array
+- Roles configurable by name:
+  - `'Contributor'`
+  - `'DNS Resolver Contributor'`
+  - `'DNS Zone Contributor'`
+  - `'Network Contributor'`
+  - `'Owner'`
+  - `'Private DNS Zone Contributor'`
+  - `'Reader'`
+  - `'Role Based Access Control Administrator'`
 
 **Required parameters**
 
@@ -512,6 +642,7 @@ Array of role assignments to create.
 | [`conditionVersion`](#parameter-roleassignmentsconditionversion) | string | Version of the condition. |
 | [`delegatedManagedIdentityResourceId`](#parameter-roleassignmentsdelegatedmanagedidentityresourceid) | string | The Resource Id of the delegated managed identity resource. |
 | [`description`](#parameter-roleassignmentsdescription) | string | The description of the role assignment. |
+| [`name`](#parameter-roleassignmentsname) | string | The name (as GUID) of the role assignment. If not provided, a GUID will be generated. |
 | [`principalType`](#parameter-roleassignmentsprincipaltype) | string | The principal type of the assigned principal ID. |
 
 ### Parameter: `roleAssignments.principalId`
@@ -562,6 +693,13 @@ The description of the role assignment.
 - Required: No
 - Type: string
 
+### Parameter: `roleAssignments.name`
+
+The name (as GUID) of the role assignment. If not provided, a GUID will be generated.
+
+- Required: No
+- Type: string
+
 ### Parameter: `roleAssignments.principalType`
 
 The principal type of the assigned principal ID.
@@ -586,13 +724,38 @@ Tags of the resource.
 - Required: No
 - Type: object
 
-### Parameter: `vNetLinks`
+### Parameter: `virtualNetworkLinks`
 
 Array of virtual network links.
 
 - Required: No
 - Type: array
 
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`virtualNetworkResourceId`](#parameter-virtualnetworklinksvirtualnetworkresourceid) | string | The resource ID of the virtual network to link. |
+
+**Optional parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-virtualnetworklinksname) | string | The name of the virtual network link. |
+
+### Parameter: `virtualNetworkLinks.virtualNetworkResourceId`
+
+The resource ID of the virtual network to link.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `virtualNetworkLinks.name`
+
+The name of the virtual network link.
+
+- Required: No
+- Type: string
 
 ## Outputs
 
@@ -602,10 +765,6 @@ Array of virtual network links.
 | `name` | string | The name of the DNS Forwarding Ruleset. |
 | `resourceGroupName` | string | The resource group the DNS Forwarding Ruleset was deployed into. |
 | `resourceId` | string | The resource ID of the DNS Forwarding Ruleset. |
-
-## Cross-referenced modules
-
-_None_
 
 ## Data Collection
 

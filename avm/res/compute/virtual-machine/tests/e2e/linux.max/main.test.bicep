@@ -11,14 +11,19 @@ metadata description = 'This instance deploys the module with most of its featur
 @maxLength(90)
 param resourceGroupName string = 'dep-${namePrefix}-compute.virtualMachines-${serviceShort}-rg'
 
-@description('Optional. The location to deploy resources to.')
-param resourceLocation string = deployment().location
+// Capacity constraints for VM type
+#disable-next-line no-hardcoded-location
+var enforcedLocation = 'uksouth'
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
 param serviceShort string = 'cvmlinmax'
 
 @description('Optional. A token to inject into the name of each resource.')
 param namePrefix string = '#_namePrefix_#'
+
+@description('Required. The object id of the Backup Management Service Enterprise Application. This value is tenant-specific and must be stored in the CI Key Vault in a secret named \'CI-BackupManagementServiceEnterpriseApplicationObjectId\'.')
+@secure()
+param backupManagementServiceEnterpriseApplicationObjectId string = ''
 
 // ============ //
 // Dependencies //
@@ -28,14 +33,14 @@ param namePrefix string = '#_namePrefix_#'
 // =================
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: resourceGroupName
-  location: resourceLocation
+  location: enforcedLocation
 }
 
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
+  name: '${uniqueString(deployment().name, enforcedLocation)}-nestedDependencies'
   params: {
-    location: resourceLocation
+    location: enforcedLocation
     virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
     applicationSecurityGroupName: 'dep-${namePrefix}-asg-${serviceShort}'
     managedIdentityName: 'dep-${namePrefix}-msi-${serviceShort}'
@@ -46,6 +51,9 @@ module nestedDependencies 'dependencies.bicep' = {
     storageUploadDeploymentScriptName: 'dep-${namePrefix}-sads-${serviceShort}'
     sshDeploymentScriptName: 'dep-${namePrefix}-ds-${serviceShort}'
     sshKeyName: 'dep-${namePrefix}-ssh-${serviceShort}'
+    dcrName: 'dep-${namePrefix}-dcr-${serviceShort}'
+    backupManagementServiceApplicationObjectId: backupManagementServiceEnterpriseApplicationObjectId
+    logAnalyticsWorkspaceResourceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
   }
 }
 
@@ -53,13 +61,13 @@ module nestedDependencies 'dependencies.bicep' = {
 // ===========
 module diagnosticDependencies '../../../../../../utilities/e2e-template-assets/templates/diagnostic.dependencies.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, resourceLocation)}-diagnosticDependencies'
+  name: '${uniqueString(deployment().name, enforcedLocation)}-diagnosticDependencies'
   params: {
     storageAccountName: 'dep${namePrefix}diasa${serviceShort}01'
     logAnalyticsWorkspaceName: 'dep-${namePrefix}-law-${serviceShort}'
     eventHubNamespaceEventHubName: 'dep-${namePrefix}-evh-${serviceShort}'
     eventHubNamespaceName: 'dep-${namePrefix}-evhns-${serviceShort}'
-    location: resourceLocation
+    location: enforcedLocation
   }
 }
 
@@ -69,11 +77,11 @@ module diagnosticDependencies '../../../../../../utilities/e2e-template-assets/t
 
 module testDeployment '../../../main.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}'
+  name: '${uniqueString(deployment().name, enforcedLocation)}-test-${serviceShort}'
   params: {
     name: '${namePrefix}${serviceShort}'
     computerName: '${namePrefix}linvm1'
-    location: resourceLocation
+    location: enforcedLocation
     adminUsername: 'localAdministrator'
     imageReference: {
       publisher: 'Canonical'
@@ -99,19 +107,33 @@ module testDeployment '../../../main.bicep' = {
             name: 'ipconfig01'
             pipConfiguration: {
               publicIpNameSuffix: '-pip-01'
+              zones: [
+                1
+                2
+                3
+              ]
               roleAssignments: [
                 {
-                  roleDefinitionIdOrName: 'Reader'
+                  name: '696e6067-3ddc-4b71-bf97-9caebeba441a'
+                  roleDefinitionIdOrName: 'Owner'
+                  principalId: nestedDependencies.outputs.managedIdentityPrincipalId
+                  principalType: 'ServicePrincipal'
+                }
+                {
+                  roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+                  principalId: nestedDependencies.outputs.managedIdentityPrincipalId
+                  principalType: 'ServicePrincipal'
+                }
+                {
+                  roleDefinitionIdOrName: subscriptionResourceId(
+                    'Microsoft.Authorization/roleDefinitions',
+                    'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+                  )
                   principalId: nestedDependencies.outputs.managedIdentityPrincipalId
                   principalType: 'ServicePrincipal'
                 }
               ]
             }
-            zones: [
-              '1'
-              '2'
-              '3'
-            ]
             subnetResourceId: nestedDependencies.outputs.subnetResourceId
             diagnosticSettings: [
               {
@@ -129,10 +151,24 @@ module testDeployment '../../../main.bicep' = {
             ]
           }
         ]
-        nicSuffix: '-nic-01'
+        name: 'nic-test-01'
         roleAssignments: [
           {
-            roleDefinitionIdOrName: 'Reader'
+            name: 'ff72f58d-a3cf-42fd-9c27-c61906bdddfe'
+            roleDefinitionIdOrName: 'Owner'
+            principalId: nestedDependencies.outputs.managedIdentityPrincipalId
+            principalType: 'ServicePrincipal'
+          }
+          {
+            roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+            principalId: nestedDependencies.outputs.managedIdentityPrincipalId
+            principalType: 'ServicePrincipal'
+          }
+          {
+            roleDefinitionIdOrName: subscriptionResourceId(
+              'Microsoft.Authorization/roleDefinitions',
+              'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+            )
             principalId: nestedDependencies.outputs.managedIdentityPrincipalId
             principalType: 'ServicePrincipal'
           }
@@ -154,35 +190,38 @@ module testDeployment '../../../main.bicep' = {
       }
     ]
     osDisk: {
+      name: 'osdisk01'
       caching: 'ReadOnly'
-      createOption: 'fromImage'
+      createOption: 'FromImage'
       deleteOption: 'Delete'
-      diskSizeGB: '128'
+      diskSizeGB: 128
       managedDisk: {
         storageAccountType: 'Premium_LRS'
       }
     }
     osType: 'Linux'
-    vmSize: 'Standard_DS2_v2'
-    availabilityZone: 1
+    vmSize: 'Standard_D2s_v3'
+    zone: 1
     backupPolicyName: nestedDependencies.outputs.recoveryServicesVaultBackupPolicyName
     backupVaultName: nestedDependencies.outputs.recoveryServicesVaultName
     backupVaultResourceGroup: nestedDependencies.outputs.recoveryServicesVaultResourceGroupName
     dataDisks: [
       {
+        name: 'datadisk01'
         caching: 'ReadWrite'
         createOption: 'Empty'
         deleteOption: 'Delete'
-        diskSizeGB: '128'
+        diskSizeGB: 128
         managedDisk: {
           storageAccountType: 'Premium_LRS'
         }
       }
       {
+        name: 'datadisk02'
         caching: 'ReadWrite'
         createOption: 'Empty'
         deleteOption: 'Delete'
-        diskSizeGB: '128'
+        diskSizeGB: 128
         managedDisk: {
           storageAccountType: 'Premium_LRS'
         }
@@ -190,6 +229,7 @@ module testDeployment '../../../main.bicep' = {
     ]
     enableAutomaticUpdates: true
     patchMode: 'AutomaticByPlatform'
+    rebootSetting: 'IfRequired'
     disablePasswordAuthentication: true
     encryptionAtHost: false
     extensionCustomScriptConfig: {
@@ -211,6 +251,7 @@ module testDeployment '../../../main.bicep' = {
     }
     extensionDependencyAgentConfig: {
       enabled: true
+      enableAMA: true
       tags: {
         'hidden-title': 'This is visible in the resource name'
         Environment: 'Non-Prod'
@@ -253,12 +294,17 @@ module testDeployment '../../../main.bicep' = {
     }
     extensionMonitoringAgentConfig: {
       enabled: true
+      dataCollectionRuleAssociations: [
+        {
+          name: 'SendMetricsToLAW'
+          dataCollectionRuleResourceId: nestedDependencies.outputs.dataCollectionRuleResourceId
+        }
+      ]
       tags: {
         'hidden-title': 'This is visible in the resource name'
         Environment: 'Non-Prod'
         Role: 'DeploymentValidation'
       }
-      monitoringWorkspaceResourceId: diagnosticDependencies.outputs.logAnalyticsWorkspaceResourceId
     }
     extensionNetworkWatcherAgentConfig: {
       enabled: true
@@ -280,11 +326,13 @@ module testDeployment '../../../main.bicep' = {
     ]
     roleAssignments: [
       {
+        name: 'eb01de52-d2be-4272-a7b9-13de6c399e27'
         roleDefinitionIdOrName: 'Owner'
         principalId: nestedDependencies.outputs.managedIdentityPrincipalId
         principalType: 'ServicePrincipal'
       }
       {
+        name: guid('Custom seed ${namePrefix}${serviceShort}')
         roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
         principalId: nestedDependencies.outputs.managedIdentityPrincipalId
         principalType: 'ServicePrincipal'

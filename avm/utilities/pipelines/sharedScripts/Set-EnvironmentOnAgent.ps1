@@ -63,7 +63,7 @@ function Install-CustomModule {
                 $alreadyInstalled = $alreadyInstalled | Where-Object { $_.Version -eq $Module.Version }
             } else {
                 # Get latest in case of multiple
-                $alreadyInstalled = ($alreadyInstalled | Sort-Object -Property Version -Descending)[0]
+                $alreadyInstalled = ($alreadyInstalled | Sort-Object -Culture 'en-US' -Property 'Version' -Descending)[0]
             }
             Write-Verbose ('Module [{0}] already installed with version [{1}]' -f $alreadyInstalled.Name, $alreadyInstalled.Version) -Verbose
             continue
@@ -114,6 +114,9 @@ Optional. The PowerShell modules that should be installed on the agent.
     }
 )
 
+.PARAMETER InstallLatestPwshVersion
+Optional. Enable to install the latest PowerShell version
+
 .EXAMPLE
 Set-EnvironmentOnAgent
 
@@ -133,7 +136,10 @@ function Set-EnvironmentOnAgent {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]
-        [Hashtable[]] $PSModules = @()
+        [Hashtable[]] $PSModules = @(),
+
+        [Parameter(Mandatory = $false)]
+        [switch] $InstallLatestPwshVersion
     )
 
     ############################
@@ -258,10 +264,12 @@ function Set-EnvironmentOnAgent {
     }
 
     Write-Verbose ('Install-CustomModule end') -Verbose
+}
 
-    #####################################
-    ##  TEMP PowerShell installation   ##
-    #####################################
+if ($InstallLatestPwshVersion) {
+    Write-Verbose '=======================' -Verbose
+    Write-Verbose 'PowerShell installation' -Verbose
+    Write-Verbose '=======================' -Verbose
 
     # Update the list of packages
     sudo apt-get update

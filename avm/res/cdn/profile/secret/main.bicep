@@ -14,7 +14,7 @@ param profileName string
   'ManagedCertificate'
   'UrlSigningKey'
 ])
-@description('Required. The type of the secrect.')
+@description('Optional. The type of the secrect.')
 param type string = 'AzureFirstPartyManagedCertificate'
 
 @description('Conditional. The resource ID of the secret source. Required if the `type` is "CustomerCertificate".')
@@ -38,6 +38,8 @@ resource secret 'Microsoft.Cdn/profiles/secrets@2023-05-01' = {
   name: name
   parent: profile
   properties: {
+    // False positive
+    #disable-next-line BCP225
     parameters: (type == 'CustomerCertificate')
       ? {
           type: type

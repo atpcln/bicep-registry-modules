@@ -1,3 +1,4 @@
+// WARNING: this test is disabled, as there is an known issue on Azure, preventing deployment, see https://techcommunity.microsoft.com/t5/azure-infrastructure/enabling-azure-automanage-or-creating-a-custom-configuration/m-p/4251861
 targetScope = 'subscription'
 
 metadata name = 'Using automanage for the VM.'
@@ -11,8 +12,9 @@ metadata description = 'This instance deploys the module with registering to an 
 @maxLength(90)
 param resourceGroupName string = 'dep-${namePrefix}-compute.virtualMachines-${serviceShort}-rg'
 
-@description('Optional. The location to deploy resources to.')
-param resourceLocation string = deployment().location
+// Capacity constraints for VM type
+#disable-next-line no-hardcoded-location
+var enforcedLocation = 'uksouth'
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
 param serviceShort string = 'cvmlinatmg'
@@ -28,14 +30,14 @@ param namePrefix string = '#_namePrefix_#'
 // =================
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: resourceGroupName
-  location: resourceLocation
+  location: enforcedLocation
 }
 
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
+  name: '${uniqueString(deployment().name, enforcedLocation)}-nestedDependencies'
   params: {
-    location: resourceLocation
+    location: enforcedLocation
     virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
     sshDeploymentScriptName: 'dep-${namePrefix}-ds-${serviceShort}'
     sshKeyName: 'dep-${namePrefix}-ssh-${serviceShort}'
@@ -54,11 +56,11 @@ module nestedDependencies 'dependencies.bicep' = {
 
 @batchSize(1)
 module testDeployment '../../../main.bicep' = [
-  for iteration in ['init', 'idem']: {
+  for iteration in ['init', 'idem']: if (false) {
     scope: resourceGroup
-    name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
+    name: '${uniqueString(deployment().name, enforcedLocation)}-test-${serviceShort}-${iteration}'
     params: {
-      location: resourceLocation
+      location: enforcedLocation
       name: '${namePrefix}${serviceShort}'
       adminUsername: 'localAdminUser'
       imageReference: {
@@ -67,7 +69,7 @@ module testDeployment '../../../main.bicep' = [
         sku: '22_04-lts-gen2'
         version: 'latest'
       }
-      availabilityZone: 0
+      zone: 0
       nicConfigurations: [
         {
           ipConfigurations: [
@@ -75,12 +77,12 @@ module testDeployment '../../../main.bicep' = [
               name: 'ipconfig01'
               pipConfiguration: {
                 publicIpNameSuffix: '-pip-01'
+                zones: [
+                  1
+                  2
+                  3
+                ]
               }
-              zones: [
-                '1'
-                '2'
-                '3'
-              ]
               subnetResourceId: nestedDependencies.outputs.subnetResourceId
             }
           ]
@@ -88,13 +90,13 @@ module testDeployment '../../../main.bicep' = [
         }
       ]
       osDisk: {
-        diskSizeGB: '128'
+        diskSizeGB: 128
         managedDisk: {
           storageAccountType: 'Premium_LRS'
         }
       }
       osType: 'Linux'
-      vmSize: 'Standard_DS2_v2'
+      vmSize: 'Standard_D2s_v3'
       configurationProfile: '/providers/Microsoft.Automanage/bestPractices/AzureBestPracticesProduction'
       disablePasswordAuthentication: true
       publicKeys: [

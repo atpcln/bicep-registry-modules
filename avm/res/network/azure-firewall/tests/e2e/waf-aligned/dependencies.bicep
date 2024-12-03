@@ -25,7 +25,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-04-01' = {
       {
         name: 'AzureFirewallSubnet'
         properties: {
-          addressPrefix: cidrSubnet(addressPrefix, 16, 0)
+          addressPrefix: cidrSubnet(addressPrefix, 26, 0)
         }
       }
     ]
@@ -59,6 +59,9 @@ output virtualNetworkResourceId string = virtualNetwork.id
 
 @description('The resource ID of the created Public IP.')
 output publicIPResourceId string = publicIP.id
+
+@description('The public IP Address of the created Public IP.')
+output publicIPAddress string = publicIP.properties.ipAddress
 
 @description('The principal ID of the created Managed Identity.')
 output managedIdentityPrincipalId string = managedIdentity.properties.principalId

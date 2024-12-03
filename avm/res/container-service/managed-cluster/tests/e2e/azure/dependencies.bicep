@@ -36,15 +36,12 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-04-01' = {
         addressPrefix
       ]
     }
-    subnets: map(
-      range(0, 3),
-      i => {
-        name: 'subnet-${i}'
-        properties: {
-          addressPrefix: cidrSubnet(addressPrefix, 24, i)
-        }
+    subnets: map(range(0, 3), i => {
+      name: 'subnet-${i}'
+      properties: {
+        addressPrefix: cidrSubnet(addressPrefix, 24, i)
       }
-    )
+    })
   }
 }
 
@@ -67,7 +64,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-11-01' = {
       name: 'standard'
     }
     tenantId: tenant().tenantId
-    enablePurgeProtection: true // Required by nodepool vmss
+    enablePurgeProtection: true // Required for encryption to work
     softDeleteRetentionInDays: 7
     enabledForTemplateDeployment: true
     enabledForDiskEncryption: true

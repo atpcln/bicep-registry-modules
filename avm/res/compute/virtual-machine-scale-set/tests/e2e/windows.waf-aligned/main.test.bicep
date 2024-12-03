@@ -157,6 +157,7 @@ module testDeployment '../../../main.bicep' = [
       }
       extensionMonitoringAgentConfig: {
         enabled: true
+        autoUpgradeMinorVersion: true
       }
       extensionNetworkWatcherAgentConfig: {
         enabled: true
@@ -170,6 +171,9 @@ module testDeployment '../../../main.bicep' = [
                 subnet: {
                   id: nestedDependencies.outputs.subnetResourceId
                 }
+                publicIPAddressConfiguration: {
+                  name: '${namePrefix}-pip-${serviceShort}'
+                }
               }
             }
           ]
@@ -178,7 +182,7 @@ module testDeployment '../../../main.bicep' = [
       ]
       skuCapacity: 1
       managedIdentities: {
-        systemAssigned: true
+        systemAssigned: false
         userAssignedResourceIds: [
           nestedDependencies.outputs.managedIdentityResourceId
         ]

@@ -70,7 +70,12 @@ module testDeployment '../../../main.bicep' = [
       skuName: 'VpnGw2AZ'
       gatewayType: 'Vpn'
       vNetResourceId: nestedDependencies.outputs.vnetResourceId
-      activeActive: true
+      clusterSettings: {
+        clusterMode:'activeActiveBgp'
+        customBgpIpAddresses: ['169.254.21.4','169.254.21.5']
+        secondCustomBgpIpAddresses:  ['169.254.22.4','169.254.22.5']
+        asn: 65515
+      }
       diagnosticSettings: [
         {
           name: 'customSetting'
@@ -93,9 +98,9 @@ module testDeployment '../../../main.bicep' = [
         name: 'myCustomLockName'
       }
       publicIpZones: [
-        '1'
-        '2'
-        '3'
+        1
+        2
+        3
       ]
       vpnType: 'RouteBased'
       tags: {

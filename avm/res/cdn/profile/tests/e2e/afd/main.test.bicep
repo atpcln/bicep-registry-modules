@@ -42,6 +42,9 @@ module testDeployment '../../../main.bicep' = [
     name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
     params: {
       name: 'dep-${namePrefix}-test-${serviceShort}'
+      managedIdentities: {
+        systemAssigned: true
+      }
       location: 'global'
       originResponseTimeoutSeconds: 60
       sku: 'Standard_AzureFrontDoor'
@@ -52,7 +55,7 @@ module testDeployment '../../../main.bicep' = [
           certificateType: 'ManagedCertificate'
         }
       ]
-      origionGroups: [
+      originGroups: [
         {
           name: 'dep-${namePrefix}-test-${serviceShort}-origin-group'
           loadBalancingSettings: {
@@ -98,7 +101,7 @@ module testDeployment '../../../main.bicep' = [
             {
               name: 'dep-${namePrefix}-test-${serviceShort}-afd-route'
               originGroupName: 'dep-${namePrefix}-test-${serviceShort}-origin-group'
-              customDomainName: 'dep-${namePrefix}-test-${serviceShort}-custom-domain'
+              customDomainNames: ['dep-${namePrefix}-test-${serviceShort}-custom-domain']
               ruleSets: [
                 {
                   name: 'dep${namePrefix}test${serviceShort}ruleset'

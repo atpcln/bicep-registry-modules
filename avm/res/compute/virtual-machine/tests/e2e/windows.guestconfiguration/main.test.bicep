@@ -11,8 +11,9 @@ metadata description = 'This instance deploys the module with the a guest config
 @maxLength(90)
 param resourceGroupName string = 'dep-${namePrefix}-compute.virtualMachines-${serviceShort}-rg'
 
-@description('Optional. The location to deploy resources to.')
-param resourceLocation string = deployment().location
+// Capacity constraints for VM type
+#disable-next-line no-hardcoded-location
+var enforcedLocation = 'uksouth'
 
 @description('Optional. A short identifier for the kind of deployment. Should be kept short to not run into resource-name length-constraints.')
 param serviceShort string = 'cvmwinguest'
@@ -32,14 +33,14 @@ param namePrefix string = '#_namePrefix_#'
 // =================
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: resourceGroupName
-  location: resourceLocation
+  location: enforcedLocation
 }
 
 module nestedDependencies 'dependencies.bicep' = {
   scope: resourceGroup
-  name: '${uniqueString(deployment().name, resourceLocation)}-nestedDependencies'
+  name: '${uniqueString(deployment().name, enforcedLocation)}-nestedDependencies'
   params: {
-    location: resourceLocation
+    location: enforcedLocation
     virtualNetworkName: 'dep-${namePrefix}-vnet-${serviceShort}'
   }
 }
@@ -51,12 +52,12 @@ module nestedDependencies 'dependencies.bicep' = {
 module testDeployment '../../../main.bicep' = [
   for iteration in ['init', 'idem']: {
     scope: resourceGroup
-    name: '${uniqueString(deployment().name, resourceLocation)}-test-${serviceShort}-${iteration}'
+    name: '${uniqueString(deployment().name, enforcedLocation)}-test-${serviceShort}-${iteration}'
     params: {
       managedIdentities: {
         systemAssigned: true
       }
-      location: resourceLocation
+      location: enforcedLocation
       name: '${namePrefix}${serviceShort}'
       adminUsername: 'localAdminUser'
       imageReference: {
@@ -65,27 +66,31 @@ module testDeployment '../../../main.bicep' = [
         sku: '2022-datacenter-azure-edition'
         version: 'latest'
       }
-      availabilityZone: 0
+      zone: 0
       nicConfigurations: [
         {
           ipConfigurations: [
             {
               name: 'ipconfig01'
               subnetResourceId: nestedDependencies.outputs.subnetResourceId
+              pipConfiguration: {
+                publicIpNameSuffix: '-pip-01'
+                zones: []
+              }
             }
           ]
           nicSuffix: '-nic-01'
         }
       ]
       osDisk: {
-        diskSizeGB: '128'
+        diskSizeGB: 128
         caching: 'ReadWrite'
         managedDisk: {
           storageAccountType: 'Premium_LRS'
         }
       }
       osType: 'Windows'
-      vmSize: 'Standard_DS2_v2'
+      vmSize: 'Standard_D2s_v3'
       adminPassword: password
       extensionGuestConfigurationExtension: {
         enabled: true

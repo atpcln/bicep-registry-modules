@@ -18,8 +18,8 @@ This module deploys an Azure Firewall.
 | `Microsoft.Authorization/locks` | [2020-05-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Authorization/2020-05-01/locks) |
 | `Microsoft.Authorization/roleAssignments` | [2022-04-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Authorization/2022-04-01/roleAssignments) |
 | `Microsoft.Insights/diagnosticSettings` | [2021-05-01-preview](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Insights/2021-05-01-preview/diagnosticSettings) |
-| `Microsoft.Network/azureFirewalls` | [2023-04-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Network/2023-04-01/azureFirewalls) |
-| `Microsoft.Network/publicIPAddresses` | [2023-04-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Network/2023-04-01/publicIPAddresses) |
+| `Microsoft.Network/azureFirewalls` | [2024-01-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Network/2024-01-01/azureFirewalls) |
+| `Microsoft.Network/publicIPAddresses` | [2023-09-01](https://learn.microsoft.com/en-us/azure/templates/Microsoft.Network/2023-09-01/publicIPAddresses) |
 
 ## Usage examples
 
@@ -30,12 +30,15 @@ The following section provides usage examples for the module, which were used to
 >**Note**: To reference the module, please use the following syntax `br/public:avm/res/network/azure-firewall:<version>`.
 
 - [Add-PIP](#example-1-add-pip)
-- [Custom-PIP](#example-2-custom-pip)
-- [Using only defaults](#example-3-using-only-defaults)
-- [Hub-commom](#example-4-hub-commom)
-- [Hub-min](#example-5-hub-min)
-- [Using large parameter set](#example-6-using-large-parameter-set)
-- [WAF-aligned](#example-7-waf-aligned)
+- [Basic SKU](#example-2-basic-sku)
+- [Custom-PIP](#example-3-custom-pip)
+- [Using only defaults](#example-4-using-only-defaults)
+- [Hub-commom](#example-5-hub-commom)
+- [Hub-min](#example-6-hub-min)
+- [Using large parameter set](#example-7-using-large-parameter-set)
+- [Public-IP-Prefix](#example-8-public-ip-prefix)
+- [Forced tunneling](#example-9-forced-tunneling)
+- [WAF-aligned](#example-10-waf-aligned)
 
 ### Example 1: _Add-PIP_
 
@@ -81,7 +84,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -129,7 +132,125 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 2: _Custom-PIP_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafaddpip001'
+// Non-required parameters
+param additionalPublicIpConfigurations = [
+  {
+    name: 'ipConfig01'
+    publicIPAddressResourceId: '<publicIPAddressResourceId>'
+  }
+]
+param azureSkuTier = 'Basic'
+param location = '<location>'
+param managementIPAddressObject = {
+  publicIPAllocationMethod: 'Static'
+  roleAssignments: [
+    {
+      principalId: '<principalId>'
+      principalType: 'ServicePrincipal'
+      roleDefinitionIdOrName: 'Reader'
+    }
+  ]
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+```
+
+</details>
+<p>
+
+### Example 2: _Basic SKU_
+
+This instance deploys the module with the Basic SKU.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
+  name: 'azureFirewallDeployment'
+  params: {
+    // Required parameters
+    name: 'nafbasic001'
+    // Non-required parameters
+    azureSkuTier: 'Basic'
+    location: '<location>'
+    networkRuleCollections: []
+    threatIntelMode: 'Deny'
+    virtualNetworkResourceId: '<virtualNetworkResourceId>'
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "name": {
+      "value": "nafbasic001"
+    },
+    // Non-required parameters
+    "azureSkuTier": {
+      "value": "Basic"
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "networkRuleCollections": {
+      "value": []
+    },
+    "threatIntelMode": {
+      "value": "Deny"
+    },
+    "virtualNetworkResourceId": {
+      "value": "<virtualNetworkResourceId>"
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafbasic001'
+// Non-required parameters
+param azureSkuTier = 'Basic'
+param location = '<location>'
+param networkRuleCollections = []
+param threatIntelMode = 'Deny'
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+```
+
+</details>
+<p>
+
+### Example 3: _Custom-PIP_
 
 This instance deploys the module and will create a public IP address.
 
@@ -184,7 +305,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -239,7 +360,52 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 3: _Using only defaults_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafcstpip001'
+// Non-required parameters
+param location = '<location>'
+param publicIPAddressObject = {
+  diagnosticSettings: [
+    {
+      eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+      eventHubName: '<eventHubName>'
+      metricCategories: [
+        {
+          category: 'AllMetrics'
+        }
+      ]
+      name: 'customSetting'
+      storageAccountResourceId: '<storageAccountResourceId>'
+      workspaceResourceId: '<workspaceResourceId>'
+    }
+  ]
+  name: 'new-pip-nafcstpip'
+  publicIPAllocationMethod: 'Static'
+  publicIPPrefixResourceId: ''
+  roleAssignments: [
+    {
+      principalId: '<principalId>'
+      principalType: 'ServicePrincipal'
+      roleDefinitionIdOrName: 'Reader'
+    }
+  ]
+  skuName: 'Standard'
+  skuTier: 'Regional'
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+```
+
+</details>
+<p>
+
+### Example 4: _Using only defaults_
 
 This instance deploys the module with the minimum set of required parameters.
 
@@ -266,7 +432,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -291,7 +457,24 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 4: _Hub-commom_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafmin001'
+// Non-required parameters
+param location = '<location>'
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+```
+
+</details>
+<p>
+
+### Example 5: _Hub-commom_
 
 This instance deploys the module a vWAN in a typical hub setting.
 
@@ -324,7 +507,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -359,7 +542,30 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 5: _Hub-min_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafhubcom001'
+// Non-required parameters
+param firewallPolicyId = '<firewallPolicyId>'
+param hubIPAddresses = {
+  publicIPs: {
+    count: 1
+  }
+}
+param location = '<location>'
+param virtualHubId = '<virtualHubId>'
+```
+
+</details>
+<p>
+
+### Example 6: _Hub-min_
 
 This instance deploys the module a vWAN minimum hub setting.
 
@@ -391,7 +597,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -423,7 +629,29 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 6: _Using large parameter set_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafhubmin001'
+// Non-required parameters
+param hubIPAddresses = {
+  publicIPs: {
+    count: 1
+  }
+}
+param location = '<location>'
+param virtualHubId = '<virtualHubId>'
+```
+
+</details>
+<p>
+
+### Example 7: _Using large parameter set_
 
 This instance deploys the module with most of its features enabled.
 
@@ -444,7 +672,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
         name: 'allow-app-rules'
         properties: {
           action: {
-            type: 'allow'
+            type: 'Allow'
           }
           priority: 100
           rules: [
@@ -456,12 +684,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
               name: 'allow-ase-tags'
               protocols: [
                 {
-                  port: '80'
-                  protocolType: 'HTTP'
+                  port: 80
+                  protocolType: 'Http'
                 }
                 {
-                  port: '443'
-                  protocolType: 'HTTPS'
+                  port: 443
+                  protocolType: 'Https'
                 }
               ]
               sourceAddresses: [
@@ -472,12 +700,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
               name: 'allow-ase-management'
               protocols: [
                 {
-                  port: '80'
-                  protocolType: 'HTTP'
+                  port: 80
+                  protocolType: 'Http'
                 }
                 {
-                  port: '443'
-                  protocolType: 'HTTPS'
+                  port: 443
+                  protocolType: 'Https'
                 }
               ]
               sourceAddresses: [
@@ -515,7 +743,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
         name: 'allow-network-rules'
         properties: {
           action: {
-            type: 'allow'
+            type: 'Allow'
           }
           priority: 100
           rules: [
@@ -535,6 +763,22 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 '*'
               ]
             }
+            {
+              description: 'allow azure devops'
+              destinationAddresses: [
+                'AzureDevOps'
+              ]
+              destinationPorts: [
+                '443'
+              ]
+              name: 'allow-azure-devops'
+              protocols: [
+                'Any'
+              ]
+              sourceAddresses: [
+                '*'
+              ]
+            }
           ]
         }
       }
@@ -542,11 +786,13 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
     publicIPResourceID: '<publicIPResourceID>'
     roleAssignments: [
       {
+        name: '3a8da184-d6d8-4bea-b992-e27cc053ef21'
         principalId: '<principalId>'
         principalType: 'ServicePrincipal'
         roleDefinitionIdOrName: 'Owner'
       }
       {
+        name: '<name>'
         principalId: '<principalId>'
         principalType: 'ServicePrincipal'
         roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
@@ -577,7 +823,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -595,7 +841,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
           "name": "allow-app-rules",
           "properties": {
             "action": {
-              "type": "allow"
+              "type": "Allow"
             },
             "priority": 100,
             "rules": [
@@ -607,12 +853,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 "name": "allow-ase-tags",
                 "protocols": [
                   {
-                    "port": "80",
-                    "protocolType": "HTTP"
+                    "port": 80,
+                    "protocolType": "Http"
                   },
                   {
-                    "port": "443",
-                    "protocolType": "HTTPS"
+                    "port": 443,
+                    "protocolType": "Https"
                   }
                 ],
                 "sourceAddresses": [
@@ -623,12 +869,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 "name": "allow-ase-management",
                 "protocols": [
                   {
-                    "port": "80",
-                    "protocolType": "HTTP"
+                    "port": 80,
+                    "protocolType": "Http"
                   },
                   {
-                    "port": "443",
-                    "protocolType": "HTTPS"
+                    "port": 443,
+                    "protocolType": "Https"
                   }
                 ],
                 "sourceAddresses": [
@@ -674,7 +920,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
           "name": "allow-network-rules",
           "properties": {
             "action": {
-              "type": "allow"
+              "type": "Allow"
             },
             "priority": 100,
             "rules": [
@@ -693,6 +939,22 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 "sourceAddresses": [
                   "*"
                 ]
+              },
+              {
+                "description": "allow azure devops",
+                "destinationAddresses": [
+                  "AzureDevOps"
+                ],
+                "destinationPorts": [
+                  "443"
+                ],
+                "name": "allow-azure-devops",
+                "protocols": [
+                  "Any"
+                ],
+                "sourceAddresses": [
+                  "*"
+                ]
               }
             ]
           }
@@ -705,11 +967,13 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
     "roleAssignments": {
       "value": [
         {
+          "name": "3a8da184-d6d8-4bea-b992-e27cc053ef21",
           "principalId": "<principalId>",
           "principalType": "ServicePrincipal",
           "roleDefinitionIdOrName": "Owner"
         },
         {
+          "name": "<name>",
           "principalId": "<principalId>",
           "principalType": "ServicePrincipal",
           "roleDefinitionIdOrName": "b24988ac-6180-42a0-ab88-20f7382dd24c"
@@ -745,7 +1009,404 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
-### Example 7: _WAF-aligned_
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafmax001'
+// Non-required parameters
+param applicationRuleCollections = [
+  {
+    name: 'allow-app-rules'
+    properties: {
+      action: {
+        type: 'Allow'
+      }
+      priority: 100
+      rules: [
+        {
+          fqdnTags: [
+            'AppServiceEnvironment'
+            'WindowsUpdate'
+          ]
+          name: 'allow-ase-tags'
+          protocols: [
+            {
+              port: 80
+              protocolType: 'Http'
+            }
+            {
+              port: 443
+              protocolType: 'Https'
+            }
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+        }
+        {
+          name: 'allow-ase-management'
+          protocols: [
+            {
+              port: 80
+              protocolType: 'Http'
+            }
+            {
+              port: 443
+              protocolType: 'Https'
+            }
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+          targetFqdns: [
+            'bing.com'
+          ]
+        }
+      ]
+    }
+  }
+]
+param diagnosticSettings = [
+  {
+    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+    eventHubName: '<eventHubName>'
+    metricCategories: [
+      {
+        category: 'AllMetrics'
+      }
+    ]
+    name: 'customSetting'
+    storageAccountResourceId: '<storageAccountResourceId>'
+    workspaceResourceId: '<workspaceResourceId>'
+  }
+]
+param location = '<location>'
+param lock = {
+  kind: 'CanNotDelete'
+  name: 'myCustomLockName'
+}
+param networkRuleCollections = [
+  {
+    name: 'allow-network-rules'
+    properties: {
+      action: {
+        type: 'Allow'
+      }
+      priority: 100
+      rules: [
+        {
+          destinationAddresses: [
+            '*'
+          ]
+          destinationPorts: [
+            '12000'
+            '123'
+          ]
+          name: 'allow-ntp'
+          protocols: [
+            'Any'
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+        }
+        {
+          description: 'allow azure devops'
+          destinationAddresses: [
+            'AzureDevOps'
+          ]
+          destinationPorts: [
+            '443'
+          ]
+          name: 'allow-azure-devops'
+          protocols: [
+            'Any'
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+        }
+      ]
+    }
+  }
+]
+param publicIPResourceID = '<publicIPResourceID>'
+param roleAssignments = [
+  {
+    name: '3a8da184-d6d8-4bea-b992-e27cc053ef21'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'Owner'
+  }
+  {
+    name: '<name>'
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+  }
+  {
+    principalId: '<principalId>'
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: '<roleDefinitionIdOrName>'
+  }
+]
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+param zones = [
+  '1'
+  '2'
+  '3'
+]
+```
+
+</details>
+<p>
+
+### Example 8: _Public-IP-Prefix_
+
+This instance deploys the module and will use a public IP prefix.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
+  name: 'azureFirewallDeployment'
+  params: {
+    // Required parameters
+    name: 'nafpip001'
+    // Non-required parameters
+    azureSkuTier: 'Basic'
+    location: '<location>'
+    managementIPAddressObject: {
+      managementIPAllocationMethod: 'Static'
+      managementIPPrefixResourceId: '<managementIPPrefixResourceId>'
+      name: 'managementIP01'
+      skuName: 'Standard'
+      skuTier: 'Regional'
+    }
+    publicIPAddressObject: {
+      name: 'publicIP01'
+      publicIPAllocationMethod: 'Static'
+      publicIPPrefixResourceId: '<publicIPPrefixResourceId>'
+      skuName: 'Standard'
+      skuTier: 'Regional'
+    }
+    virtualNetworkResourceId: '<virtualNetworkResourceId>'
+    zones: []
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "name": {
+      "value": "nafpip001"
+    },
+    // Non-required parameters
+    "azureSkuTier": {
+      "value": "Basic"
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "managementIPAddressObject": {
+      "value": {
+        "managementIPAllocationMethod": "Static",
+        "managementIPPrefixResourceId": "<managementIPPrefixResourceId>",
+        "name": "managementIP01",
+        "skuName": "Standard",
+        "skuTier": "Regional"
+      }
+    },
+    "publicIPAddressObject": {
+      "value": {
+        "name": "publicIP01",
+        "publicIPAllocationMethod": "Static",
+        "publicIPPrefixResourceId": "<publicIPPrefixResourceId>",
+        "skuName": "Standard",
+        "skuTier": "Regional"
+      }
+    },
+    "virtualNetworkResourceId": {
+      "value": "<virtualNetworkResourceId>"
+    },
+    "zones": {
+      "value": []
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafpip001'
+// Non-required parameters
+param azureSkuTier = 'Basic'
+param location = '<location>'
+param managementIPAddressObject = {
+  managementIPAllocationMethod: 'Static'
+  managementIPPrefixResourceId: '<managementIPPrefixResourceId>'
+  name: 'managementIP01'
+  skuName: 'Standard'
+  skuTier: 'Regional'
+}
+param publicIPAddressObject = {
+  name: 'publicIP01'
+  publicIPAllocationMethod: 'Static'
+  publicIPPrefixResourceId: '<publicIPPrefixResourceId>'
+  skuName: 'Standard'
+  skuTier: 'Regional'
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+param zones = []
+```
+
+</details>
+<p>
+
+### Example 9: _Forced tunneling_
+
+This instance deploys the module and sets up forced tunneling.
+
+
+<details>
+
+<summary>via Bicep module</summary>
+
+```bicep
+module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
+  name: 'azureFirewallDeployment'
+  params: {
+    // Required parameters
+    name: 'naftunn001'
+    // Non-required parameters
+    additionalPublicIpConfigurations: [
+      {
+        name: 'ipConfig01'
+        publicIPAddressResourceId: '<publicIPAddressResourceId>'
+      }
+    ]
+    azureSkuTier: 'Standard'
+    enableForcedTunneling: true
+    location: '<location>'
+    managementIPAddressObject: {
+      publicIPAllocationMethod: 'Static'
+    }
+    virtualNetworkResourceId: '<virtualNetworkResourceId>'
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via JSON parameters file</summary>
+
+```json
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    // Required parameters
+    "name": {
+      "value": "naftunn001"
+    },
+    // Non-required parameters
+    "additionalPublicIpConfigurations": {
+      "value": [
+        {
+          "name": "ipConfig01",
+          "publicIPAddressResourceId": "<publicIPAddressResourceId>"
+        }
+      ]
+    },
+    "azureSkuTier": {
+      "value": "Standard"
+    },
+    "enableForcedTunneling": {
+      "value": true
+    },
+    "location": {
+      "value": "<location>"
+    },
+    "managementIPAddressObject": {
+      "value": {
+        "publicIPAllocationMethod": "Static"
+      }
+    },
+    "virtualNetworkResourceId": {
+      "value": "<virtualNetworkResourceId>"
+    }
+  }
+}
+```
+
+</details>
+<p>
+
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'naftunn001'
+// Non-required parameters
+param additionalPublicIpConfigurations = [
+  {
+    name: 'ipConfig01'
+    publicIPAddressResourceId: '<publicIPAddressResourceId>'
+  }
+]
+param azureSkuTier = 'Standard'
+param enableForcedTunneling = true
+param location = '<location>'
+param managementIPAddressObject = {
+  publicIPAllocationMethod: 'Static'
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+```
+
+</details>
+<p>
+
+### Example 10: _WAF-aligned_
 
 This instance deploys the module in alignment with the best-practices of the Azure Well-Architected Framework.
 
@@ -766,7 +1427,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
         name: 'allow-app-rules'
         properties: {
           action: {
-            type: 'allow'
+            type: 'Allow'
           }
           priority: 100
           rules: [
@@ -778,12 +1439,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
               name: 'allow-ase-tags'
               protocols: [
                 {
-                  port: '80'
-                  protocolType: 'HTTP'
+                  port: 80
+                  protocolType: 'Http'
                 }
                 {
-                  port: '443'
-                  protocolType: 'HTTPS'
+                  port: 443
+                  protocolType: 'Https'
                 }
               ]
               sourceAddresses: [
@@ -794,12 +1455,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
               name: 'allow-ase-management'
               protocols: [
                 {
-                  port: '80'
-                  protocolType: 'HTTP'
+                  port: 80
+                  protocolType: 'Http'
                 }
                 {
-                  port: '443'
-                  protocolType: 'HTTPS'
+                  port: 443
+                  protocolType: 'Https'
                 }
               ]
               sourceAddresses: [
@@ -833,7 +1494,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
         name: 'allow-network-rules'
         properties: {
           action: {
-            type: 'allow'
+            type: 'Allow'
           }
           priority: 100
           rules: [
@@ -878,7 +1539,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 
 <details>
 
-<summary>via JSON Parameter file</summary>
+<summary>via JSON parameters file</summary>
 
 ```json
 {
@@ -896,7 +1557,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
           "name": "allow-app-rules",
           "properties": {
             "action": {
-              "type": "allow"
+              "type": "Allow"
             },
             "priority": 100,
             "rules": [
@@ -908,12 +1569,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 "name": "allow-ase-tags",
                 "protocols": [
                   {
-                    "port": "80",
-                    "protocolType": "HTTP"
+                    "port": 80,
+                    "protocolType": "Http"
                   },
                   {
-                    "port": "443",
-                    "protocolType": "HTTPS"
+                    "port": 443,
+                    "protocolType": "Https"
                   }
                 ],
                 "sourceAddresses": [
@@ -924,12 +1585,12 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
                 "name": "allow-ase-management",
                 "protocols": [
                   {
-                    "port": "80",
-                    "protocolType": "HTTP"
+                    "port": 80,
+                    "protocolType": "Http"
                   },
                   {
-                    "port": "443",
-                    "protocolType": "HTTPS"
+                    "port": 443,
+                    "protocolType": "Https"
                   }
                 ],
                 "sourceAddresses": [
@@ -969,7 +1630,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
           "name": "allow-network-rules",
           "properties": {
             "action": {
-              "type": "allow"
+              "type": "Allow"
             },
             "priority": 100,
             "rules": [
@@ -1021,6 +1682,128 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 </details>
 <p>
 
+<details>
+
+<summary>via Bicep parameters file</summary>
+
+```bicep-params
+using 'br/public:avm/res/network/azure-firewall:<version>'
+
+// Required parameters
+param name = 'nafwaf001'
+// Non-required parameters
+param applicationRuleCollections = [
+  {
+    name: 'allow-app-rules'
+    properties: {
+      action: {
+        type: 'Allow'
+      }
+      priority: 100
+      rules: [
+        {
+          fqdnTags: [
+            'AppServiceEnvironment'
+            'WindowsUpdate'
+          ]
+          name: 'allow-ase-tags'
+          protocols: [
+            {
+              port: 80
+              protocolType: 'Http'
+            }
+            {
+              port: 443
+              protocolType: 'Https'
+            }
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+        }
+        {
+          name: 'allow-ase-management'
+          protocols: [
+            {
+              port: 80
+              protocolType: 'Http'
+            }
+            {
+              port: 443
+              protocolType: 'Https'
+            }
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+          targetFqdns: [
+            'bing.com'
+          ]
+        }
+      ]
+    }
+  }
+]
+param diagnosticSettings = [
+  {
+    eventHubAuthorizationRuleResourceId: '<eventHubAuthorizationRuleResourceId>'
+    eventHubName: '<eventHubName>'
+    metricCategories: [
+      {
+        category: 'AllMetrics'
+      }
+    ]
+    name: 'customSetting'
+    storageAccountResourceId: '<storageAccountResourceId>'
+    workspaceResourceId: '<workspaceResourceId>'
+  }
+]
+param location = '<location>'
+param networkRuleCollections = [
+  {
+    name: 'allow-network-rules'
+    properties: {
+      action: {
+        type: 'Allow'
+      }
+      priority: 100
+      rules: [
+        {
+          destinationAddresses: [
+            '*'
+          ]
+          destinationPorts: [
+            '12000'
+            '123'
+          ]
+          name: 'allow-ntp'
+          protocols: [
+            'Any'
+          ]
+          sourceAddresses: [
+            '*'
+          ]
+        }
+      ]
+    }
+  }
+]
+param publicIPResourceID = '<publicIPResourceID>'
+param tags = {
+  Environment: 'Non-Prod'
+  'hidden-title': 'This is visible in the resource name'
+  Role: 'DeploymentValidation'
+}
+param virtualNetworkResourceId = '<virtualNetworkResourceId>'
+param zones = [
+  '1'
+  '2'
+  '3'
+]
+```
+
+</details>
+<p>
 
 ## Parameters
 
@@ -1046,6 +1829,7 @@ module azureFirewall 'br/public:avm/res/network/azure-firewall:<version>' = {
 | [`applicationRuleCollections`](#parameter-applicationrulecollections) | array | Collection of application rule collections used by Azure Firewall. |
 | [`azureSkuTier`](#parameter-azureskutier) | string | Tier of an Azure Firewall. |
 | [`diagnosticSettings`](#parameter-diagnosticsettings) | array | The diagnostic settings of the service. |
+| [`enableForcedTunneling`](#parameter-enableforcedtunneling) | bool | Enable/Disable forced tunneling. |
 | [`enableTelemetry`](#parameter-enabletelemetry) | bool | Enable/Disable usage telemetry for module. |
 | [`firewallPolicyId`](#parameter-firewallpolicyid) | string | Resource ID of the Firewall Policy that should be attached. |
 | [`location`](#parameter-location) | string | Location for all resources. |
@@ -1106,7 +1890,176 @@ Collection of application rule collections used by Azure Firewall.
 
 - Required: No
 - Type: array
-- Default: `[]`
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-applicationrulecollectionsname) | string | Name of the application rule collection. |
+| [`properties`](#parameter-applicationrulecollectionsproperties) | object | Properties of the azure firewall application rule collection. |
+
+### Parameter: `applicationRuleCollections.name`
+
+Name of the application rule collection.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `applicationRuleCollections.properties`
+
+Properties of the azure firewall application rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`action`](#parameter-applicationrulecollectionspropertiesaction) | object | The action type of a rule collection. |
+| [`priority`](#parameter-applicationrulecollectionspropertiespriority) | int | Priority of the application rule collection. |
+| [`rules`](#parameter-applicationrulecollectionspropertiesrules) | array | Collection of rules used by a application rule collection. |
+
+### Parameter: `applicationRuleCollections.properties.action`
+
+The action type of a rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`type`](#parameter-applicationrulecollectionspropertiesactiontype) | string | The type of action. |
+
+### Parameter: `applicationRuleCollections.properties.action.type`
+
+The type of action.
+
+- Required: Yes
+- Type: string
+- Allowed:
+  ```Bicep
+  [
+    'Allow'
+    'Deny'
+  ]
+  ```
+
+### Parameter: `applicationRuleCollections.properties.priority`
+
+Priority of the application rule collection.
+
+- Required: Yes
+- Type: int
+
+### Parameter: `applicationRuleCollections.properties.rules`
+
+Collection of rules used by a application rule collection.
+
+- Required: Yes
+- Type: array
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-applicationrulecollectionspropertiesrulesname) | string | Name of the application rule. |
+| [`protocols`](#parameter-applicationrulecollectionspropertiesrulesprotocols) | array | Array of ApplicationRuleProtocols. |
+
+**Optional parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`description`](#parameter-applicationrulecollectionspropertiesrulesdescription) | string | Description of the rule. |
+| [`fqdnTags`](#parameter-applicationrulecollectionspropertiesrulesfqdntags) | array | List of FQDN Tags for this rule. |
+| [`sourceAddresses`](#parameter-applicationrulecollectionspropertiesrulessourceaddresses) | array | List of source IP addresses for this rule. |
+| [`sourceIpGroups`](#parameter-applicationrulecollectionspropertiesrulessourceipgroups) | array | List of source IpGroups for this rule. |
+| [`targetFqdns`](#parameter-applicationrulecollectionspropertiesrulestargetfqdns) | array | List of FQDNs for this rule. |
+
+### Parameter: `applicationRuleCollections.properties.rules.name`
+
+Name of the application rule.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `applicationRuleCollections.properties.rules.protocols`
+
+Array of ApplicationRuleProtocols.
+
+- Required: Yes
+- Type: array
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`protocolType`](#parameter-applicationrulecollectionspropertiesrulesprotocolsprotocoltype) | string | Protocol type. |
+
+**Optional parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`port`](#parameter-applicationrulecollectionspropertiesrulesprotocolsport) | int | Port number for the protocol. |
+
+### Parameter: `applicationRuleCollections.properties.rules.protocols.protocolType`
+
+Protocol type.
+
+- Required: Yes
+- Type: string
+- Allowed:
+  ```Bicep
+  [
+    'Http'
+    'Https'
+    'Mssql'
+  ]
+  ```
+
+### Parameter: `applicationRuleCollections.properties.rules.protocols.port`
+
+Port number for the protocol.
+
+- Required: No
+- Type: int
+
+### Parameter: `applicationRuleCollections.properties.rules.description`
+
+Description of the rule.
+
+- Required: No
+- Type: string
+
+### Parameter: `applicationRuleCollections.properties.rules.fqdnTags`
+
+List of FQDN Tags for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `applicationRuleCollections.properties.rules.sourceAddresses`
+
+List of source IP addresses for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `applicationRuleCollections.properties.rules.sourceIpGroups`
+
+List of source IpGroups for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `applicationRuleCollections.properties.rules.targetFqdns`
+
+List of FQDNs for this rule.
+
+- Required: No
+- Type: array
 
 ### Parameter: `azureSkuTier`
 
@@ -1270,6 +2223,14 @@ Resource ID of the diagnostic log analytics workspace. For security reasons, it 
 - Required: No
 - Type: string
 
+### Parameter: `enableForcedTunneling`
+
+Enable/Disable forced tunneling.
+
+- Required: No
+- Type: bool
+- Default: `False`
+
 ### Parameter: `enableTelemetry`
 
 Enable/Disable usage telemetry for module.
@@ -1352,7 +2313,175 @@ Collection of NAT rule collections used by Azure Firewall.
 
 - Required: No
 - Type: array
-- Default: `[]`
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-natrulecollectionsname) | string | Name of the NAT rule collection. |
+| [`properties`](#parameter-natrulecollectionsproperties) | object | Properties of the azure firewall NAT rule collection. |
+
+### Parameter: `natRuleCollections.name`
+
+Name of the NAT rule collection.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `natRuleCollections.properties`
+
+Properties of the azure firewall NAT rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`action`](#parameter-natrulecollectionspropertiesaction) | object | The action type of a NAT rule collection. |
+| [`priority`](#parameter-natrulecollectionspropertiespriority) | int | Priority of the NAT rule collection. |
+| [`rules`](#parameter-natrulecollectionspropertiesrules) | array | Collection of rules used by a NAT rule collection. |
+
+### Parameter: `natRuleCollections.properties.action`
+
+The action type of a NAT rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`type`](#parameter-natrulecollectionspropertiesactiontype) | string | The type of action. |
+
+### Parameter: `natRuleCollections.properties.action.type`
+
+The type of action.
+
+- Required: Yes
+- Type: string
+- Allowed:
+  ```Bicep
+  [
+    'Dnat'
+    'Snat'
+  ]
+  ```
+
+### Parameter: `natRuleCollections.properties.priority`
+
+Priority of the NAT rule collection.
+
+- Required: Yes
+- Type: int
+
+### Parameter: `natRuleCollections.properties.rules`
+
+Collection of rules used by a NAT rule collection.
+
+- Required: Yes
+- Type: array
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-natrulecollectionspropertiesrulesname) | string | Name of the NAT rule. |
+| [`protocols`](#parameter-natrulecollectionspropertiesrulesprotocols) | array | Array of AzureFirewallNetworkRuleProtocols applicable to this NAT rule. |
+
+**Optional parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`description`](#parameter-natrulecollectionspropertiesrulesdescription) | string | Description of the rule. |
+| [`destinationAddresses`](#parameter-natrulecollectionspropertiesrulesdestinationaddresses) | array | List of destination IP addresses for this rule. Supports IP ranges, prefixes, and service tags. |
+| [`destinationPorts`](#parameter-natrulecollectionspropertiesrulesdestinationports) | array | List of destination ports. |
+| [`sourceAddresses`](#parameter-natrulecollectionspropertiesrulessourceaddresses) | array | List of source IP addresses for this rule. |
+| [`sourceIpGroups`](#parameter-natrulecollectionspropertiesrulessourceipgroups) | array | List of source IpGroups for this rule. |
+| [`translatedAddress`](#parameter-natrulecollectionspropertiesrulestranslatedaddress) | string | The translated address for this NAT rule. |
+| [`translatedFqdn`](#parameter-natrulecollectionspropertiesrulestranslatedfqdn) | string | The translated FQDN for this NAT rule. |
+| [`translatedPort`](#parameter-natrulecollectionspropertiesrulestranslatedport) | string | The translated port for this NAT rule. |
+
+### Parameter: `natRuleCollections.properties.rules.name`
+
+Name of the NAT rule.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `natRuleCollections.properties.rules.protocols`
+
+Array of AzureFirewallNetworkRuleProtocols applicable to this NAT rule.
+
+- Required: Yes
+- Type: array
+- Allowed:
+  ```Bicep
+  [
+    'Any'
+    'ICMP'
+    'TCP'
+    'UDP'
+  ]
+  ```
+
+### Parameter: `natRuleCollections.properties.rules.description`
+
+Description of the rule.
+
+- Required: No
+- Type: string
+
+### Parameter: `natRuleCollections.properties.rules.destinationAddresses`
+
+List of destination IP addresses for this rule. Supports IP ranges, prefixes, and service tags.
+
+- Required: No
+- Type: array
+
+### Parameter: `natRuleCollections.properties.rules.destinationPorts`
+
+List of destination ports.
+
+- Required: No
+- Type: array
+
+### Parameter: `natRuleCollections.properties.rules.sourceAddresses`
+
+List of source IP addresses for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `natRuleCollections.properties.rules.sourceIpGroups`
+
+List of source IpGroups for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `natRuleCollections.properties.rules.translatedAddress`
+
+The translated address for this NAT rule.
+
+- Required: No
+- Type: string
+
+### Parameter: `natRuleCollections.properties.rules.translatedFqdn`
+
+The translated FQDN for this NAT rule.
+
+- Required: No
+- Type: string
+
+### Parameter: `natRuleCollections.properties.rules.translatedPort`
+
+The translated port for this NAT rule.
+
+- Required: No
+- Type: string
 
 ### Parameter: `networkRuleCollections`
 
@@ -1360,7 +2489,167 @@ Collection of network rule collections used by Azure Firewall.
 
 - Required: No
 - Type: array
-- Default: `[]`
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-networkrulecollectionsname) | string | Name of the network rule collection. |
+| [`properties`](#parameter-networkrulecollectionsproperties) | object | Properties of the azure firewall network rule collection. |
+
+### Parameter: `networkRuleCollections.name`
+
+Name of the network rule collection.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `networkRuleCollections.properties`
+
+Properties of the azure firewall network rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`action`](#parameter-networkrulecollectionspropertiesaction) | object | The action type of a rule collection. |
+| [`priority`](#parameter-networkrulecollectionspropertiespriority) | int | Priority of the network rule collection. |
+| [`rules`](#parameter-networkrulecollectionspropertiesrules) | array | Collection of rules used by a network rule collection. |
+
+### Parameter: `networkRuleCollections.properties.action`
+
+The action type of a rule collection.
+
+- Required: Yes
+- Type: object
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`type`](#parameter-networkrulecollectionspropertiesactiontype) | string | The type of action. |
+
+### Parameter: `networkRuleCollections.properties.action.type`
+
+The type of action.
+
+- Required: Yes
+- Type: string
+- Allowed:
+  ```Bicep
+  [
+    'Allow'
+    'Deny'
+  ]
+  ```
+
+### Parameter: `networkRuleCollections.properties.priority`
+
+Priority of the network rule collection.
+
+- Required: Yes
+- Type: int
+
+### Parameter: `networkRuleCollections.properties.rules`
+
+Collection of rules used by a network rule collection.
+
+- Required: Yes
+- Type: array
+
+**Required parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`name`](#parameter-networkrulecollectionspropertiesrulesname) | string | Name of the network rule. |
+| [`protocols`](#parameter-networkrulecollectionspropertiesrulesprotocols) | array | Array of AzureFirewallNetworkRuleProtocols. |
+
+**Optional parameters**
+
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| [`description`](#parameter-networkrulecollectionspropertiesrulesdescription) | string | Description of the rule. |
+| [`destinationAddresses`](#parameter-networkrulecollectionspropertiesrulesdestinationaddresses) | array | List of destination IP addresses. |
+| [`destinationFqdns`](#parameter-networkrulecollectionspropertiesrulesdestinationfqdns) | array | List of destination FQDNs. |
+| [`destinationIpGroups`](#parameter-networkrulecollectionspropertiesrulesdestinationipgroups) | array | List of destination IP groups for this rule. |
+| [`destinationPorts`](#parameter-networkrulecollectionspropertiesrulesdestinationports) | array | List of destination ports. |
+| [`sourceAddresses`](#parameter-networkrulecollectionspropertiesrulessourceaddresses) | array | List of source IP addresses for this rule. |
+| [`sourceIpGroups`](#parameter-networkrulecollectionspropertiesrulessourceipgroups) | array | List of source IpGroups for this rule. |
+
+### Parameter: `networkRuleCollections.properties.rules.name`
+
+Name of the network rule.
+
+- Required: Yes
+- Type: string
+
+### Parameter: `networkRuleCollections.properties.rules.protocols`
+
+Array of AzureFirewallNetworkRuleProtocols.
+
+- Required: Yes
+- Type: array
+- Allowed:
+  ```Bicep
+  [
+    'Any'
+    'ICMP'
+    'TCP'
+    'UDP'
+  ]
+  ```
+
+### Parameter: `networkRuleCollections.properties.rules.description`
+
+Description of the rule.
+
+- Required: No
+- Type: string
+
+### Parameter: `networkRuleCollections.properties.rules.destinationAddresses`
+
+List of destination IP addresses.
+
+- Required: No
+- Type: array
+
+### Parameter: `networkRuleCollections.properties.rules.destinationFqdns`
+
+List of destination FQDNs.
+
+- Required: No
+- Type: array
+
+### Parameter: `networkRuleCollections.properties.rules.destinationIpGroups`
+
+List of destination IP groups for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `networkRuleCollections.properties.rules.destinationPorts`
+
+List of destination ports.
+
+- Required: No
+- Type: array
+
+### Parameter: `networkRuleCollections.properties.rules.sourceAddresses`
+
+List of source IP addresses for this rule.
+
+- Required: No
+- Type: array
+
+### Parameter: `networkRuleCollections.properties.rules.sourceIpGroups`
+
+List of source IpGroups for this rule.
+
+- Required: No
+- Type: array
 
 ### Parameter: `publicIPAddressObject`
 
@@ -1389,6 +2678,12 @@ Array of role assignments to create.
 
 - Required: No
 - Type: array
+- Roles configurable by name:
+  - `'Contributor'`
+  - `'Owner'`
+  - `'Reader'`
+  - `'Role Based Access Control Administrator'`
+  - `'User Access Administrator'`
 
 **Required parameters**
 
@@ -1405,6 +2700,7 @@ Array of role assignments to create.
 | [`conditionVersion`](#parameter-roleassignmentsconditionversion) | string | Version of the condition. |
 | [`delegatedManagedIdentityResourceId`](#parameter-roleassignmentsdelegatedmanagedidentityresourceid) | string | The Resource Id of the delegated managed identity resource. |
 | [`description`](#parameter-roleassignmentsdescription) | string | The description of the role assignment. |
+| [`name`](#parameter-roleassignmentsname) | string | The name (as GUID) of the role assignment. If not provided, a GUID will be generated. |
 | [`principalType`](#parameter-roleassignmentsprincipaltype) | string | The principal type of the assigned principal ID. |
 
 ### Parameter: `roleAssignments.principalId`
@@ -1451,6 +2747,13 @@ The Resource Id of the delegated managed identity resource.
 ### Parameter: `roleAssignments.description`
 
 The description of the role assignment.
+
+- Required: No
+- Type: string
+
+### Parameter: `roleAssignments.name`
+
+The name (as GUID) of the role assignment. If not provided, a GUID will be generated.
 
 - Required: No
 - Type: string
@@ -1504,23 +2807,22 @@ Zone numbers e.g. 1,2,3.
 - Default:
   ```Bicep
   [
-    '1'
-    '2'
-    '3'
+    1
+    2
+    3
   ]
   ```
-
 
 ## Outputs
 
 | Output | Type | Description |
 | :-- | :-- | :-- |
-| `applicationRuleCollections` | array | List of Application Rule Collections. |
+| `applicationRuleCollections` | array | List of Application Rule Collections used by Azure Firewall. |
 | `ipConfAzureFirewallSubnet` | object | The Public IP configuration object for the Azure Firewall Subnet. |
 | `location` | string | The location the resource was deployed into. |
 | `name` | string | The name of the Azure Firewall. |
-| `natRuleCollections` | array | Collection of NAT rule collections used by Azure Firewall. |
-| `networkRuleCollections` | array | List of Network Rule Collections. |
+| `natRuleCollections` | array | List of NAT rule collections used by Azure Firewall. |
+| `networkRuleCollections` | array | List of Network Rule Collections used by Azure Firewall. |
 | `privateIp` | string | The private IP of the Azure firewall. |
 | `resourceGroupName` | string | The resource group the Azure firewall was deployed into. |
 | `resourceId` | string | The resource ID of the Azure Firewall. |
@@ -1531,7 +2833,7 @@ This section gives you an overview of all local-referenced module files (i.e., o
 
 | Reference | Type |
 | :-- | :-- |
-| `br/public:avm/res/network/public-ip-address:0.2.1` | Remote reference |
+| `br/public:avm/res/network/public-ip-address:0.6.0` | Remote reference |
 
 ## Data Collection
 
